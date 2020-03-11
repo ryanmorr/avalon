@@ -1,5 +1,10 @@
 class Avalon {
     constructor(state = {}) {
+        if ('title' in state) {
+            document.title = state.title;
+        } else {
+            state.title = document.title;
+        }
         this._state = Object.assign(Object.create(null), state);
     }
 
