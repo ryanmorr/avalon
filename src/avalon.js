@@ -23,6 +23,11 @@ function createStateObject(source) {
     return deepFreeze(Object.assign(Object.create(null), source));
 }
 
+function normalizePath(path) {
+    path = path.trim();
+    return path === '/' ? path : path.replace(/\/$/, '');
+}
+
 class Avalon {
     constructor(state = {}) {
         if ('title' in state) {
@@ -35,6 +40,10 @@ class Avalon {
 
     state() {
         return this._state;
+    }
+
+    path() {
+        return normalizePath(window.location.pathname);
     }
 }
 

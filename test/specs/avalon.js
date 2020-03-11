@@ -94,4 +94,18 @@ describe('avalon', () => {
             });
         }
     });
+
+    it('should get the current URL path', () => {
+        const app = avalon();
+        expect(app.path()).to.equal(window.location.pathname);
+    });
+
+    it('should remove trailing slashes from the current URL path', () => {
+        const app = avalon();
+
+        history.replaceState(null, '', '/foo/');
+        expect(app.path()).to.equal('/foo');
+        history.replaceState(null, '', '/');
+        expect(app.path()).to.equal('/');
+    });
 });
