@@ -40,4 +40,58 @@ describe('avalon', () => {
         expect(avalon().state().title).to.equal(title);
         expect(avalon({}).state().title).to.equal(title);
     });
+
+    it('should make the initial state object immutable', () => {
+        const obj = {
+            ...initialState,
+            a: 1,
+            b: ['foo', 'bar', 'baz'],
+            c: true,
+            d: false,
+            e: {
+                f: 10,
+                g: [20, 30, {
+                    h: 'foo',
+                    i: 'bar'
+                }]
+            }
+        };
+
+        const app = avalon(obj);
+        const state = app.state();
+
+        expect(state).to.deep.equal(obj);
+        expect(state).to.be.frozen;
+        expect(state.b).to.be.frozen;
+        expect(state.e).to.be.frozen;
+        expect(state.e.g).to.be.frozen;
+        expect(state.e.g[2]).to.be.frozen;
+
+        try {
+            state.a = 2;
+            state.b.push('qux');
+            state.c = false;
+            state.d = true;
+            state.e.f = 20;
+            state.e.g.push(100);
+            state.e.g[2].j = 'baz';
+        } catch (e) {
+            // empty
+        } finally {
+            expect(state).to.deep.equal({
+                ...initialState,
+                a: 1,
+                b: ['foo', 'bar', 'baz'],
+                c: true,
+                d: false,
+                e: {
+                    f: 10,
+                    g: [20, 30, {
+                        h: 'foo',
+                        i: 'bar'
+                    }]
+                }
+            });
+        }
+    });
 });
