@@ -153,4 +153,39 @@ describe('mutate', () => {
             });
         }
     });
+
+    it('should emit the mutate event when the state has changed', () => {
+        const app = avalon({...initialState, foo: 1});
+        const originalState = app.state();
+        app.mutate('foo', () => ({bar: 2}));
+
+        const callback = sinon.spy();
+        app.on('mutate', callback);
+
+        app.commit('foo');
+        expect(callback.callCount).to.equal(1);
+
+        const name = callback.args[0][0];
+        const prevState = callback.args[0][1];
+        const nextState = callback.args[0][2];
+        const partialState = callback.args[0][3];
+
+        expect(name).to.equal('foo');
+        expect(prevState).to.equal(originalState);
+        expect(prevState).to.deep.equal({...initialState, foo: 1});
+        expect(prevState).to.not.equal(nextState);
+        expect(prevState).to.not.deep.equal(nextState);
+        expect(nextState).to.equal(app.state());
+        expect(nextState).to.deep.equal({...initialState, foo: 1, bar: 2});
+        expect(partialState).to.deep.equal({bar: 2});
+    });
+
+    it('should set the document title if the title property is changed', () => {
+        const app = avalon(initialState);
+        app.mutate('title', () => ({title: 'foo'}));
+
+        app.commit('title');
+        expect(app.state().title).to.equal('foo');
+        expect(document.title).to.equal('foo');
+    });
 });
