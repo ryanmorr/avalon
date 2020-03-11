@@ -12,4 +12,12 @@ describe('avalon', () => {
         expect(state).to.not.equal(obj);
         expect(Object.getPrototypeOf(state)).to.equal(null);
     });
+
+    it('should create an empty object as the initial state by default', () => {
+        const app = avalon();
+
+        const state = app.state();
+        expect(state).to.be.a('object');
+        expect(state).to.deep.equal({});
+    });
 });

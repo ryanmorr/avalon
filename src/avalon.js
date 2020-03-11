@@ -1,5 +1,5 @@
 class Avalon {
-    constructor(state) {
+    constructor(state = {}) {
         this._state = Object.assign(Object.create(null), state);
     }
 
