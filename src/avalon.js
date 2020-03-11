@@ -10,9 +10,9 @@ class Avalon {
         this._state = createStateObject(state);
         this._mutators = Object.create(null);
         this._events = new Map();
-        this.on('mutate', (name, oldState, newState) => {
-            if (newState.title !== oldState.title) {
-                document.title = newState.title;
+        this.on('mutate', (name, prevState, nextState) => {
+            if (nextState.title !== prevState.title) {
+                document.title = nextState.title;
             }
         });
     }
