@@ -9,7 +9,7 @@ class Avalon {
         }
         this._state = createStateObject(state);
         this._mutators = Object.create(null);
-        this.events = new Map();
+        this._events = new Map();
         this.on('mutate', (name, oldState, newState) => {
             if (newState.title !== oldState.title) {
                 document.title = newState.title;
@@ -26,16 +26,27 @@ class Avalon {
     }
 
     on(name, callback) {
-        let callbacks = this.events.get(name);
+        let callbacks = this._events.get(name);
         if (callbacks === undefined) {
             callbacks = [];
-            this.events.set(name, callbacks);
+            this._events.set(name, callbacks);
         }
         callbacks.push(callback);
+        return () => {
+            const callbacks = this._events.get(name);
+            if (callbacks !== undefined) {
+                for (let i = 0, len = callbacks.length; i < len; i++) {
+                    if (callbacks[i] === callback) {
+                        callbacks.splice(i, 1);
+                        return;
+                    }
+                }
+            }
+        };
     }
 
     emit(name, ...args) {
-        const callbacks = this.events.get(name);
+        const callbacks = this._events.get(name);
         if (callbacks !== undefined && callbacks.length) {
             callbacks.forEach((callback) => callback(...args));
         }

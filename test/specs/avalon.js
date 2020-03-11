@@ -108,4 +108,56 @@ describe('avalon', () => {
         history.replaceState(null, '', '/');
         expect(app.path()).to.equal('/');
     });
+    
+    it('should support custom events', () => {
+        const app = avalon({foo: 1});
+
+        const callback1 = sinon.spy();
+        app.on('foo', callback1);
+
+        const callback2 = sinon.spy();
+        app.on('foo', callback2);
+        
+        app.emit('foo', 1, 2);
+        expect(callback1.callCount).to.equal(1);
+        expect(callback1.args[0][0]).to.equal(1);
+        expect(callback1.args[0][1]).to.equal(2);
+        expect(callback2.callCount).to.equal(1);
+        expect(callback2.args[0][0]).to.equal(1);
+        expect(callback2.args[0][1]).to.equal(2);
+
+        app.emit('foo', 'bar', 'baz', 'qux');
+        expect(callback1.callCount).to.equal(2);
+        expect(callback1.args[1][0]).to.equal('bar');
+        expect(callback1.args[1][1]).to.equal('baz');
+        expect(callback1.args[1][2]).to.equal('qux');
+        expect(callback2.callCount).to.equal(2);
+        expect(callback2.args[1][0]).to.equal('bar');
+        expect(callback2.args[1][1]).to.equal('baz');
+        expect(callback2.args[1][2]).to.equal('qux');
+    });
+
+    it('should remove a custom event listener', () => {
+        const app = avalon({foo: 1});
+        
+        const callback1 = sinon.spy();
+        const off1 = app.on('foo', callback1);
+
+        const callback2 = sinon.spy();
+        const off2 = app.on('foo', callback2);
+
+        app.emit('foo');
+        expect(callback1.callCount).to.equal(1);
+        expect(callback2.callCount).to.equal(1);
+
+        off1();
+        app.emit('foo');
+        expect(callback1.callCount).to.equal(1);
+        expect(callback2.callCount).to.equal(2);
+
+        off2();
+        app.emit('foo');
+        expect(callback1.callCount).to.equal(1);
+        expect(callback2.callCount).to.equal(2);
+    });
 });
