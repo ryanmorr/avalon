@@ -21,8 +21,8 @@ export function deepFreeze(obj) {
     return obj;
 }
 
-export function createStateObject(source) {
-    return deepFreeze(Object.assign(Object.create(null), source));
+export function createStateObject(...sources) {
+    return deepFreeze(Object.assign(Object.create(null), ...sources));
 }
 
 export function normalizePath(path) {

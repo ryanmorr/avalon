@@ -8,6 +8,7 @@ class Avalon {
             state.title = document.title;
         }
         this._state = createStateObject(state);
+        this._mutators = Object.create(null);
     }
 
     state() {
@@ -16,6 +17,21 @@ class Avalon {
 
     path() {
         return normalizePath(window.location.pathname);
+    }
+
+    mutate(name, callback) {
+        this._mutators[name] = callback;
+    }
+
+    commit(name, data = null) {
+        const callback = this._mutators[name];
+        if (callback) {
+            const oldState = this.state();
+            const partialState = callback(oldState, data);
+            this._state = createStateObject(oldState, partialState);
+            return partialState;
+        }
+        return null;
     }
 }
 
