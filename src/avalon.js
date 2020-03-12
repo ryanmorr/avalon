@@ -9,7 +9,9 @@ class Avalon {
         }
         this._state = createStateObject(state);
         this._mutators = Object.create(null);
+        this._actions = new Map();
         this._events = new Map();
+        this._committer = this.commit.bind(this);
         this.on('mutate', (name, prevState, nextState) => {
             if (nextState.title !== prevState.title) {
                 document.title = nextState.title;
@@ -54,6 +56,24 @@ class Avalon {
             this._state = createStateObject(prevState, partialState);
             this.emit('mutate', name, prevState, this._state, partialState);
             return partialState;
+        }
+        return null;
+    }
+
+    action(name, callback) {
+        this._actions.set(name, callback);
+    }
+
+    dispatch(name, params = null) {
+        const state = this.state();
+        for (const [action, callback] of this._actions) {
+            if (action === name) {
+                const data = {action, state, params};
+                params = Object.assign({commit: this._committer}, data);
+                const value = callback(params);
+                this.emit('dispatch', data, value);
+                return value;
+            }
         }
         return null;
     }
