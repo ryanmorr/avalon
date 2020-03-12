@@ -28,26 +28,16 @@ class Avalon {
     on(name, callback) {
         let callbacks = this._events.get(name);
         if (callbacks === undefined) {
-            callbacks = [];
+            callbacks = new Set();
             this._events.set(name, callbacks);
         }
-        callbacks.push(callback);
-        return () => {
-            const callbacks = this._events.get(name);
-            if (callbacks !== undefined) {
-                for (let i = 0, len = callbacks.length; i < len; i++) {
-                    if (callbacks[i] === callback) {
-                        callbacks.splice(i, 1);
-                        return;
-                    }
-                }
-            }
-        };
+        callbacks.add(callback);
+        return () => this._events.get(name).delete(callback);
     }
 
     emit(name, ...args) {
         const callbacks = this._events.get(name);
-        if (callbacks !== undefined && callbacks.length) {
+        if (callbacks !== undefined && callbacks.size > 0) {
             callbacks.forEach((callback) => callback(...args));
         }
     }
