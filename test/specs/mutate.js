@@ -165,10 +165,11 @@ describe('mutate', () => {
         app.commit('foo');
         expect(callback.callCount).to.equal(1);
 
-        const name = callback.args[0][0];
-        const prevState = callback.args[0][1];
-        const nextState = callback.args[0][2];
-        const partialState = callback.args[0][3];
+        const call = callback.getCall(0);
+        const name = call.args[0];
+        const prevState = call.args[1];
+        const nextState = call.args[2];
+        const partialState = call.args[3];
 
         expect(name).to.equal('foo');
         expect(prevState).to.equal(originalState);
