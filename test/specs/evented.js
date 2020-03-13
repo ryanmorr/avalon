@@ -584,7 +584,8 @@ describe('evented', () => {
         const app = avalon();
         app.route('/foo', () => {});
 
-        const callback = sinon.spy((path) => {
+        const callback = sinon.spy((type, path) => {
+            expect(type).to.equal('navigate');
             expect(path).to.equal(app.path());
             anchor.remove();
             testDone();

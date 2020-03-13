@@ -68,12 +68,38 @@ class Avalon {
     }
 
     route(path, callback) {
+        if (!this._onPopState) {
+            this._onPopState = this._handlePopState.bind(this);
+            window.addEventListener('popstate', this._onPopState, false);
+        }
         this._actions.set(getRouteMatcher(path), callback);
     }
 
     dispatch(key = this.path(), params = null) {
         const dispatch = this._getDispatcher(key, params);
         return dispatch ? dispatch() : null;
+    }
+
+    navigate(path) {
+        return this._modifyHistory(path, 'navigate');
+    }
+
+    redirect(path) {
+        return this._modifyHistory(path, 'redirect');
+    }
+
+    _modifyHistory(path, type = 'navigate') {
+        path = normalizePath(path);
+        if (path === this.path()) {
+            return;
+        }
+        const dispatch = this._getDispatcher(path);
+        if (dispatch) {
+            history[type === 'redirect' ? 'replaceState' : 'pushState'](null, '', path);
+            this.emit('pathchange', type, path);
+            return dispatch();
+        }
+        return null;
     }
 
     _getDispatcher(key, params = null, event = null, target = null) {
@@ -105,6 +131,12 @@ class Avalon {
             }
         }
         return null;
+    }
+
+    _handlePopState() {
+        const path = this.path();
+        this.dispatch(path);
+        this.emit('pathchange', 'pop', path);
     }
 
     _handleEvent(event) {
@@ -151,7 +183,7 @@ class Avalon {
         event.preventDefault();
         if (isRoute) {
             history.pushState(null, '', key);
-            this.emit('pathchange', key);
+            this.emit('pathchange', 'navigate', key);
         }
         dispatch();
     }

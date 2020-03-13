@@ -1,5 +1,6 @@
 import '../setup';
 
+import './history';
 import './avalon';
 import './mutate';
 import './dispatch';
