@@ -375,7 +375,30 @@ describe('evented', () => {
         }));
     });
 
-    it('should ignore link with a target attribute that opens the page in a new browsing context', (testDone) => {
+    it('should ignore link with a rel=external attribute', (testDone) => {
+        const anchor = document.createElement('a');
+        anchor.href = '/foo';
+        anchor.setAttribute('rel', 'external');
+        document.body.appendChild(anchor);
+
+        const app = avalon();
+        const callback = sinon.spy();
+        app.route('/foo', callback);
+
+        once(document, 'click', () => {
+            expect(callback.called).to.equal(false);
+            anchor.remove();
+            testDone();
+        });
+
+        anchor.dispatchEvent(new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            button: 0
+        }));
+    });
+
+    it('should ignore link with a target=_blank attribute', (testDone) => {
         const anchor = document.createElement('a');
         anchor.href = '/foo';
         anchor.setAttribute('target', '_blank');

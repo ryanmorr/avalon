@@ -171,6 +171,9 @@ class Avalon {
             if (target.getAttribute('target') === '_blank') {
                 return;
             }
+            if (target.getAttribute('rel') === 'external') {
+                return;
+            }
             if (target.hasAttribute('download')) {
                 return;
             }
