@@ -139,4 +139,51 @@ describe('dispatch', () => {
         app.dispatch('/foo/bar/baz/qux');
         expect(listener.callCount).to.equal(1);
     });
+
+    it('should support asynchronous actions/routes via an optional second parameter and return a promise', (testDone) => {
+        const app = avalon(initialState);
+
+        app.action('foo', (data, done) => {
+            expect(done).to.be.a('function');
+            setTimeout(() => done('foo'), 200);
+        });
+
+        app.route('/bar', (data, done, fail) => {
+            expect(fail).to.be.a('function');
+            setTimeout(() => fail('bar'), 500);
+        });
+
+        const promise1 = app.dispatch('foo');
+        
+        expect(promise1).to.be.a('promise');
+        promise1.then((value) => {
+            expect(value).to.equal('foo');
+        });
+
+        const promise2 = app.dispatch('/bar');
+
+        expect(promise2).to.be.a('promise');
+        promise2.catch((value) => {
+            expect(value).to.equal('bar');
+            testDone();
+        });
+    });
+
+    it('should provide a promise for async actions/routes', (testDone) => {
+        const app = avalon();
+
+        app.action('foo', (data, done) => {
+            setTimeout(() => done('foo'), 100);
+        });
+
+        app.on('dispatch', (data, promise) => {
+            expect(promise).to.be.a('promise');
+            promise.then((value) => {
+                expect(value).to.equal('foo');
+                testDone();
+            });
+        });
+
+        app.dispatch('foo', 1, 2, 3);
+    });
 });

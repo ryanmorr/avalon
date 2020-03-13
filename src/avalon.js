@@ -96,7 +96,9 @@ class Avalon {
                 const data = {route, action, state, params, event, target};
                 return () => {
                     const params = Object.assign({commit: this._committer}, data);
-                    const value = callback(params);
+                    const value = (callback.length < 2) ?
+                        callback(params) :
+                        new Promise((resolve, reject) => callback(params, resolve, reject));
                     this.emit('dispatch', data, value);
                     return value;
                 };
