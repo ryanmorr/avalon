@@ -12,6 +12,8 @@ class Avalon {
         this._actions = new Map();
         this._events = new Map();
         this._committer = this.commit.bind(this);
+        this._dispatcher = this.dispatch.bind(this);
+        this._emitter = this.emit.bind(this);
         const onEvent = this._handleEvent.bind(this);
         document.documentElement.addEventListener('click', onEvent, false);
         document.documentElement.addEventListener('submit', onEvent, false);
@@ -121,7 +123,11 @@ class Avalon {
             if (action || route) {
                 const data = {route, action, state, params, event, target};
                 return () => {
-                    const params = Object.assign({commit: this._committer}, data);
+                    const params = Object.assign({
+                        commit: this._committer,
+                        dispatch: this._dispatcher,
+                        emit: this._emitter
+                    }, data);
                     const value = (callback.length < 2) ?
                         callback(params) :
                         new Promise((resolve, reject) => callback(params, resolve, reject));

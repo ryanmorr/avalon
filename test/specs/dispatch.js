@@ -14,19 +14,32 @@ describe('dispatch', () => {
         const mutatorSpy = sinon.spy((state, n) => ({foo: n}));
         app.mutate('foo', mutatorSpy);
 
-        const callback = sinon.spy(({state, action, route, params, target, event, commit}) => {
+        const dispatchSpy = sinon.spy(() => 123);
+        app.action('bar', dispatchSpy);
+
+        const emitSpy = sinon.spy();
+        app.on('foo', emitSpy);
+
+        const callback = sinon.spy(({state, action, route, params, target, event, commit, dispatch, emit}) => {
             expect(action).to.equal('foo');
-            expect(route).to.equal(null);
             expect(state).to.equal(app.state());
             expect(params).to.deep.equal(null);
+            expect(route).to.equal(null);
             expect(event).to.equal(null);
             expect(target).to.equal(null);
             expect(commit).to.be.a('function');
             commit('foo', 1);
             expect(mutatorSpy.callCount).to.equal(1);
             expect(app.state()).to.deep.equal({...initialState, foo: 1});
+            expect(dispatch).to.be.a('function');
+            expect(dispatch('bar')).to.equal(123);
+            expect(dispatchSpy.callCount).to.equal(1);
+            expect(emit).to.be.a('function');
+            emit('foo');
+            expect(emitSpy.callCount).to.equal(1);
             return 'foobar';
         });
+
         app.action('foo', callback);
 
         const returnValue = app.dispatch('foo');
@@ -51,7 +64,13 @@ describe('dispatch', () => {
         const mutatorSpy = sinon.spy((state, n) => ({foo: n}));
         app.mutate('foo', mutatorSpy);
 
-        const callback = sinon.spy(({state, action, route, params, event, target, commit}) => {
+        const dispatchSpy = sinon.spy(() => 123);
+        app.action('bar', dispatchSpy);
+
+        const emitSpy = sinon.spy();
+        app.on('foo', emitSpy);
+
+        const callback = sinon.spy(({state, action, route, params, target, event, commit, dispatch, emit}) => {
             expect(route).to.equal('/foo');
             expect(state).to.equal(app.state());
             expect(params).to.deep.equal(null);
@@ -62,8 +81,15 @@ describe('dispatch', () => {
             commit('foo', 1);
             expect(mutatorSpy.callCount).to.equal(1);
             expect(app.state()).to.deep.equal({...initialState, foo: 1});
+            expect(dispatch).to.be.a('function');
+            expect(dispatch('bar')).to.equal(123);
+            expect(dispatchSpy.callCount).to.equal(1);
+            expect(emit).to.be.a('function');
+            emit('foo');
+            expect(emitSpy.callCount).to.equal(1);
             return 'foobar';
         });
+
         app.route('/foo', callback);
 
         const returnValue = app.dispatch('/foo');
