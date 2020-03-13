@@ -1,4 +1,4 @@
-import { createStateObject, normalizePath } from './util';
+import { createStateObject, isPath, normalizePath, getRouteMatcher } from './util';
 
 class Avalon {
     constructor(state = {}) {
@@ -64,15 +64,39 @@ class Avalon {
         this._actions.set(name, callback);
     }
 
-    dispatch(name, params = null) {
+    route(path, callback) {
+        this._actions.set(getRouteMatcher(path), callback);
+    }
+
+    dispatch(key = this.path(), params = null) {
+        const dispatch = this._getDispatcher(key, params);
+        return dispatch ? dispatch() : null;
+    }
+
+    _getDispatcher(key, params = null) {
         const state = this.state();
-        for (const [action, callback] of this._actions) {
-            if (action === name) {
-                const data = {action, state, params};
-                params = Object.assign({commit: this._committer}, data);
-                const value = callback(params);
-                this.emit('dispatch', data, value);
-                return value;
+        for (const [matcher, callback] of this._actions) {
+            let route = null, action = null;
+            if (isPath(key) && typeof matcher !== 'string') {
+                const path = normalizePath(key);
+                params = matcher(path);
+                if (params) {
+                    route = path;
+                    if (Object.keys(params).length === 0) {
+                        params = null;
+                    }
+                }
+            } else if (matcher === key) {
+                action = key;
+            }
+            if (action || route) {
+                const data = {route, action, state, params};
+                return () => {
+                    const params = Object.assign({commit: this._committer}, data);
+                    const value = callback(params);
+                    this.emit('dispatch', data, value);
+                    return value;
+                };
             }
         }
         return null;
