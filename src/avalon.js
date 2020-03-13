@@ -1,4 +1,4 @@
-import { createStateObject, isPath, normalizePath, getRouteMatcher } from './util';
+import { createStateObject, isPath, isExternal, normalizePath, getRouteMatcher } from './util';
 
 class Avalon {
     constructor(state = {}) {
@@ -12,6 +12,9 @@ class Avalon {
         this._actions = new Map();
         this._events = new Map();
         this._committer = this.commit.bind(this);
+        const onEvent = this._handleEvent.bind(this);
+        document.documentElement.addEventListener('click', onEvent, false);
+        document.documentElement.addEventListener('submit', onEvent, false);
         this.on('mutate', (name, prevState, nextState) => {
             if (nextState.title !== prevState.title) {
                 document.title = nextState.title;
@@ -73,7 +76,7 @@ class Avalon {
         return dispatch ? dispatch() : null;
     }
 
-    _getDispatcher(key, params = null) {
+    _getDispatcher(key, params = null, event = null, target = null) {
         const state = this.state();
         for (const [matcher, callback] of this._actions) {
             let route = null, action = null;
@@ -90,7 +93,7 @@ class Avalon {
                 action = key;
             }
             if (action || route) {
-                const data = {route, action, state, params};
+                const data = {route, action, state, params, event, target};
                 return () => {
                     const params = Object.assign({commit: this._committer}, data);
                     const value = callback(params);
@@ -100,6 +103,55 @@ class Avalon {
             }
         }
         return null;
+    }
+
+    _handleEvent(event) {
+        if (event.defaultPrevented) {
+            return;
+        }
+        let target, key;
+        if (event.type === 'click') {
+            if (event.button || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) {
+                return;
+            }
+            target = event.target.closest('a');
+            if (!target) {
+                return;
+            }
+            if (target.getAttribute('target') === '_blank') {
+                return;
+            }
+            if (target.hasAttribute('download')) {
+                return;
+            }
+            if (isExternal(target)) {
+                return;
+            }
+            key = target.getAttribute('href');
+        } else {
+            target = event.target;
+            key = target.getAttribute('action');
+        }
+        if (!key) {
+            return;
+        }
+        const isRoute = isPath(key);
+        if (isRoute) {
+            key = normalizePath(key);
+        }
+        if (isRoute && key === this.path()) {
+            return;
+        }
+        const dispatch = this._getDispatcher(key, null, event, target);
+        if (!dispatch) {
+            return;
+        }
+        event.preventDefault();
+        if (isRoute) {
+            history.pushState(null, '', key);
+            this.emit('pathchange', key);
+        }
+        dispatch();
     }
 }
 

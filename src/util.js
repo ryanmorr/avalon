@@ -20,7 +20,7 @@ function coerce(value) {
     return value;
 }
 
-export function isPlainObject(obj) {
+function isPlainObject(obj) {
     if (!obj || typeof obj !== 'object') {
         return false;
     }
@@ -28,7 +28,14 @@ export function isPlainObject(obj) {
     return prototype === null || prototype === Object.getPrototypeOf({});
 }
 
-export function deepFreeze(obj) {
+function getOrigin(loc) {
+    if (loc.origin) {
+        return loc.origin;
+    }
+    return loc.protocol + '//' + loc.hostname + (loc.port ? ':' + loc.port : '');
+}
+
+function deepFreeze(obj) {
     if (obj == null || Object.isFrozen(obj)) {
         return obj;
     }
@@ -47,6 +54,10 @@ export function createStateObject(...sources) {
 
 export function isPath(str) {
     return str.charAt(0) === '/';
+}
+
+export function isExternal(anchor) {
+    return getOrigin(window.location) !== getOrigin(anchor);
 }
 
 export function normalizePath(path) {
