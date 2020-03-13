@@ -160,4 +160,19 @@ describe('avalon', () => {
         expect(callback1.callCount).to.equal(1);
         expect(callback2.callCount).to.equal(2);
     });
+
+    it('should support plugins', () => {
+        const app = avalon();
+
+        const pluginSpy = sinon.spy((instance, state) => {
+            expect(instance).to.equal(app);
+            expect(state).to.equal(app.state());
+            return 'foo';
+        });
+
+        const value = app.use(pluginSpy);
+
+        expect(pluginSpy.called).to.equal(true);
+        expect(value).to.equal('foo');
+    });
 });

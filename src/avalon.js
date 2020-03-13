@@ -24,6 +24,10 @@ class Avalon {
         });
     }
 
+    use(plugin) {
+        return plugin(this, this.state());
+    }
+
     state() {
         return this._state;
     }
