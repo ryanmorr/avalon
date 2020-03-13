@@ -212,4 +212,50 @@ describe('dispatch', () => {
 
         app.dispatch('foo', 1, 2, 3);
     });
+
+    it('should support adding multiple actions via an object literal', () => {
+        const app = avalon();
+
+        const callback = sinon.spy();
+        app.action({
+            foo: callback,
+            bar: callback,
+            baz: callback
+        });
+
+        app.dispatch('foo');
+        expect(callback.callCount).to.equal(1);
+        expect(callback.args[0][0].action).to.equal('foo');
+
+        app.dispatch('bar');
+        expect(callback.callCount).to.equal(2);
+        expect(callback.args[1][0].action).to.equal('bar');
+
+        app.dispatch('baz');
+        expect(callback.callCount).to.equal(3);
+        expect(callback.args[2][0].action).to.equal('baz');
+    });
+
+    it('should support adding multiple routes via an object literal', () => {
+        const app = avalon();
+
+        const callback = sinon.spy();
+        app.route({
+            '/foo': callback,
+            '/bar': callback,
+            '/baz': callback
+        });
+
+        app.dispatch('/foo');
+        expect(callback.callCount).to.equal(1);
+        expect(callback.args[0][0].route).to.equal('/foo');
+
+        app.dispatch('/bar');
+        expect(callback.callCount).to.equal(2);
+        expect(callback.args[1][0].route).to.equal('/bar');
+
+        app.dispatch('/baz');
+        expect(callback.callCount).to.equal(3);
+        expect(callback.args[2][0].route).to.equal('/baz');
+    });
 });

@@ -1,4 +1,4 @@
-import { createStateObject, isPath, isExternal, normalizePath, getRouteMatcher } from './util';
+import { addOneOrMany, createStateObject, isPath, isExternal, normalizePath, getRouteMatcher } from './util';
 
 class Avalon {
     constructor(state = {}) {
@@ -50,7 +50,9 @@ class Avalon {
     }
 
     mutate(name, callback) {
-        this._mutators[name] = callback;
+        addOneOrMany(name, callback, (key, value) => {
+            this._mutators[key] = value;
+        });
     }
 
     commit(name, data = null) {
@@ -66,7 +68,9 @@ class Avalon {
     }
 
     action(name, callback) {
-        this._actions.set(name, callback);
+        addOneOrMany(name, callback, (key, value) => {
+            this._actions.set(key, value);
+        });
     }
 
     route(path, callback) {
@@ -74,7 +78,9 @@ class Avalon {
             this._onPopState = this._handlePopState.bind(this);
             window.addEventListener('popstate', this._onPopState, false);
         }
-        this._actions.set(getRouteMatcher(path), callback);
+        addOneOrMany(path, callback, (key, value) => {
+            this._actions.set(getRouteMatcher(key), value);
+        });
     }
 
     dispatch(key = this.path(), params = null) {

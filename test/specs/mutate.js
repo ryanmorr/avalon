@@ -189,4 +189,23 @@ describe('mutate', () => {
         expect(app.state().title).to.equal('foo');
         expect(document.title).to.equal('foo');
     });
+
+    it('should support adding multiple mutators via an object literal', () => {
+        const app = avalon();
+
+        const callback = sinon.spy(() => ({foo: 1}));
+
+        app.mutate({
+            foo: callback,
+            bar: callback,
+            baz: callback
+        });
+
+        app.commit('foo');
+        expect(callback.callCount).to.equal(1);
+        app.commit('bar');
+        expect(callback.callCount).to.equal(2);
+        app.commit('baz');
+        expect(callback.callCount).to.equal(3);
+    });
 });

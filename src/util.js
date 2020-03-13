@@ -65,6 +65,16 @@ export function normalizePath(path) {
     return path === '/' ? path : path.replace(TRAILING_SLASH_RE, '');
 }
 
+export function addOneOrMany(key, value, callback) {
+    if (isPlainObject(key)) {
+        for (const prop in key) {
+            callback(prop, key[prop]);
+        }
+    } else {
+        callback(key, value);
+    }
+}
+
 export function getRouteMatcher(path) {
     const keys = [];
     const pattern = path.split('/').map((part) => {
