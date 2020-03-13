@@ -1,4 +1,4 @@
-import { addOneOrMany, createStateObject, isPath, isExternal, normalizePath, getRouteMatcher } from './util';
+import { addOneOrMany, createStateObject, isPath, isSameOrigin, normalizePath, getRouteMatcher } from './util';
 
 class Avalon {
     constructor(state = {}) {
@@ -168,6 +168,7 @@ class Avalon {
             if (!target) {
                 return;
             }
+            const isSvg = (typeof target.href === 'object') && target.href.constructor.name === 'SVGAnimatedString';
             if (target.getAttribute('target') === '_blank') {
                 return;
             }
@@ -177,10 +178,10 @@ class Avalon {
             if (target.hasAttribute('download')) {
                 return;
             }
-            if (isExternal(target)) {
+            if (!isSvg && !isSameOrigin(target)) {
                 return;
             }
-            key = target.getAttribute('href');
+            key = isSvg ? target.href.baseVal : target.getAttribute('href');
         } else {
             target = event.target;
             key = target.getAttribute('action');

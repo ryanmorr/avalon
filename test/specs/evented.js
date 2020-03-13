@@ -621,4 +621,32 @@ describe('evented', () => {
             button: 0
         }));
     });
+
+    it('should support SVG anchors', (testDone) => {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const anchor = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+        anchor.setAttribute('href', '/foo');
+        svg.appendChild(anchor);
+        document.body.appendChild(svg);
+
+        const app = avalon();
+        const callback = sinon.spy(({event, target}) => {
+            expect(event).to.be.a('mouseevent');
+            expect(target).to.equal(anchor);
+        });
+        app.route('/foo', callback);
+
+        app.on('dispatch', () => {
+            expect(callback.callCount).to.equal(1);
+            expect(app.path()).to.equal('/foo');
+            svg.remove();
+            testDone();
+        });
+
+        anchor.dispatchEvent(new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            button: 0
+        }));
+    });
 });
