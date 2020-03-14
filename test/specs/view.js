@@ -306,4 +306,26 @@ describe('view', () => {
             testDone();
         });
     });
+
+    it('should support views with multiple root elements', (testDone) => {
+        const app = avalon({foo: 1, bar: 2});
+
+        const root = document.createElement('div');
+        app.view(root, (html, {foo, bar}) => html`
+            <div>${foo}</div>
+            <span>${bar}</span>
+        `);
+
+        app.mutate('foobar', () => ({foo: 10, bar: 20}));
+
+        requestAnimationFrame(() => {
+            expect(root.innerHTML).to.equal('<div>1</div><span>2</span>');
+
+            app.commit('foobar');
+            requestAnimationFrame(() => {
+                expect(root.innerHTML).to.equal('<div>10</div><span>20</span>');
+                testDone();
+            });
+        });
+    });
 });
