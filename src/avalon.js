@@ -1,3 +1,4 @@
+import View from './view';
 import { addOneOrMany, createStateObject, isPath, isSameOrigin, normalizePath, getRouteMatcher } from './util';
 
 class Avalon {
@@ -11,6 +12,7 @@ class Avalon {
         this._mutators = Object.create(null);
         this._actions = new Map();
         this._events = new Map();
+        this._views = [];
         this._committer = this.commit.bind(this);
         this._dispatcher = this.dispatch.bind(this);
         this._emitter = this.emit.bind(this);
@@ -21,6 +23,7 @@ class Avalon {
             if (nextState.title !== prevState.title) {
                 document.title = nextState.title;
             }
+            this._views.forEach((view) => view.render());
         });
     }
 
@@ -98,6 +101,10 @@ class Avalon {
 
     redirect(path) {
         return this._modifyHistory(path, 'redirect');
+    }
+
+    view(parent, callback) {
+        this._views.push(new View(this, parent, callback));
     }
 
     _modifyHistory(path, type = 'navigate') {
