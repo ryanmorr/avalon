@@ -72,6 +72,46 @@ export function addOneOrMany(key, value, callback) {
     }
 }
 
+export function isEqual(a, b) {
+    if (a === b) {
+        return true;
+    }
+    if (a === null || b === null) {
+        return false;
+    }
+    const typeA = Object.prototype.toString.call(a);
+    const typeB = Object.prototype.toString.call(b);
+    if (typeA != typeB) {
+        return false;
+    }
+    switch (typeA) {
+        case '[object Date]':
+        case '[object Number]':
+            return +a == +b || (+a != +a && +b != +b);
+        case '[object Function]':
+        case '[object String]':
+        case '[object Boolean]':
+            return '' + a == '' + b;
+        case '[object Array]':
+            if (a.length != b.length) {
+                return false;
+            }
+            for (let i = 0; i < a.length; i++) {
+                if (!isEqual(a[i], b[i])) {
+                    return false;
+                }
+            }
+            return true;
+        case '[object Object]': {
+            const aKeys = Object.keys(a);
+            const bKeys = Object.keys(b);
+            return aKeys.length == bKeys.length && aKeys.every((key) => isEqual(a[key], b[key]));
+        }
+        default:
+            return false;
+    }
+}
+
 export function getRouteMatcher(path) {
     const keys = [];
     const pattern = path.split('/').map((part) => {

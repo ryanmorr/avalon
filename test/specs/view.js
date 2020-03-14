@@ -62,10 +62,15 @@ describe('view', () => {
             expect(state).to.equal(app.state());
             expect(dispatch).to.be.a('function');
 
-            const foo = dispatch('foo');
+            const params = {
+                foo: 1,
+                bar: 2
+            };
+            const foo = dispatch('foo', params);
             expect(foo).to.be.a('function');
             foo();
-            expect(fooSpy.callCount).to.equal(1);
+            expect(fooSpy.called).to.equal(true);
+            expect(fooSpy.args[0][0].params).to.equal(params);
 
             return html`<div></div>`;
         });
@@ -83,7 +88,8 @@ describe('view', () => {
         const app = avalon();
         let eventObject, button;
 
-        app.action('foo', ({event, target}) => {
+        app.action('foo', ({params, event, target}) => {
+            expect(params).to.deep.equal({bar: 'baz'});
             expect(event).to.equal(eventObject);
             expect(target).to.equal(event.target);
             expect(target).to.equal(button);
@@ -91,7 +97,7 @@ describe('view', () => {
         });
 
         const root = document.createElement('div');
-        app.view(root, (html, state, dispatch) => html`<button onclick=${dispatch('foo')}></button>`);
+        app.view(root, (html, state, dispatch) => html`<button onclick=${dispatch('foo', {bar: 'baz'})}></button>`);
 
         requestAnimationFrame(() => {
             button = root.querySelector('button');
@@ -100,6 +106,78 @@ describe('view', () => {
         });
     });
     
+    it('should provide the same dispatch function if the name and params are equal to prevent patching event listeners on every render', (testDone) => {
+        const app = avalon();
+
+        app.action('foo', () => {});
+        app.action('bar', () => {});
+
+        const callback = sinon.spy((html, state, dispatch) => {
+            const foo1 = dispatch('foo');
+            const foo2 = dispatch('foo', {bar: 1});
+            const foo3 = dispatch('foo', ['qux']);
+            const foo4 = dispatch('foo', true);
+            const bar1 = dispatch('bar');
+            const bar2 = dispatch('bar', {bar: 1});
+            const bar3 = dispatch('bar', ['qux']);
+            const bar4 = dispatch('bar', true);
+
+            expect(foo1).to.not.equal(foo2);
+            expect(foo1).to.not.equal(foo3);
+            expect(foo1).to.not.equal(foo4);
+            expect(foo1).to.not.equal(bar1);
+            expect(foo1).to.not.equal(bar2);
+            expect(foo1).to.not.equal(bar3);
+            expect(foo1).to.not.equal(bar4);
+            expect(foo1).to.equal(dispatch('foo'));
+
+            expect(foo2).to.not.equal(foo3);
+            expect(foo2).to.not.equal(foo4);
+            expect(foo2).to.not.equal(bar1);
+            expect(foo2).to.not.equal(bar2);
+            expect(foo2).to.not.equal(bar3);
+            expect(foo2).to.not.equal(bar4);
+            expect(foo2).to.equal(dispatch('foo', {bar: 1}));
+
+            expect(foo3).to.not.equal(foo4);
+            expect(foo3).to.not.equal(bar1);
+            expect(foo3).to.not.equal(bar2);
+            expect(foo3).to.not.equal(bar3);
+            expect(foo3).to.not.equal(bar4);
+            expect(foo3).to.equal(dispatch('foo', ['qux']));
+
+            expect(foo4).to.not.equal(bar1);
+            expect(foo4).to.not.equal(bar2);
+            expect(foo4).to.not.equal(bar3);
+            expect(foo4).to.not.equal(bar4);
+            expect(foo4).to.equal(dispatch('foo', true));
+
+            expect(bar1).to.not.equal(bar2);
+            expect(bar1).to.not.equal(bar3);
+            expect(bar1).to.not.equal(bar4);
+            expect(bar1).to.equal(dispatch('bar'));
+
+            expect(bar2).to.not.equal(bar3);
+            expect(bar2).to.not.equal(bar4);
+            expect(bar2).to.equal(dispatch('bar', {bar: 1}));
+
+            expect(bar3).to.not.equal(bar4);
+            expect(bar3).to.equal(dispatch('bar', ['qux']));
+
+            expect(bar4).to.equal(dispatch('bar', true));
+
+            return html`<div></div>`;
+        });
+
+        const root = document.createElement('div');
+        app.view(root, callback);
+
+        requestAnimationFrame(() => {
+            expect(callback.called).to.equal(true);
+            testDone();
+        });
+    });
+
     it('should schedule a frame when the views are patched', (testDone) => {
         const requestSpy = sinon.spy(window, 'requestAnimationFrame');
 

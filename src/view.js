@@ -1,6 +1,9 @@
 import htm from 'htm';
 import { scheduleRender } from '@ryanmorr/schedule-render';
 import { h, render } from 'carbon';
+import { isEqual } from './util';
+
+const dispatchers = new Map();
 
 const html = htm.bind((nodeName, attributes, ...children) => {
     attributes = attributes || {};
@@ -11,15 +14,24 @@ const html = htm.bind((nodeName, attributes, ...children) => {
     return h(nodeName, attributes, ...children);
 });
 
-function getDispatcher(app) {
-    return (key) => (e) => {
-        let event = null, target = null;
-        if (e instanceof Event) {
-            event = e;
-            target = e.target;
+function getEventDispatcher(app) {
+    return (key, params = null) => {
+        for (const [dispatcherKey, callback] of dispatchers) {
+            if (dispatcherKey[0] === key && isEqual(params, dispatcherKey[1])) {
+                return callback;
+            }
         }
-        const dispatch = app._getDispatcher(key, null, event, target);
-        return dispatch ? dispatch() : null;
+        const callback = (e) => {
+            let event = null, target = null;
+            if (e instanceof Event) {
+                event = e;
+                target = e.target;
+            }
+            const dispatch = app._getDispatcher(key, params, event, target);
+            return dispatch ? dispatch() : null;
+        };
+        dispatchers.set([key, params], callback);
+        return callback;
     };
 }
 
@@ -40,7 +52,7 @@ export default class View {
             return this.renderPromise;
         }
         return (this.renderPromise =  scheduleRender(() => {
-            const vdom = this.callback(html, this.app.state(), getDispatcher(this.app));
+            const vdom = this.callback(html, this.app.state(), getEventDispatcher(this.app));
             const element = render(this.parent, vdom);
             this.renderPromise = null;
             this.app.emit('render', element);
