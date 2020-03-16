@@ -19,7 +19,7 @@ class Avalon {
         const onEvent = this._handleEvent.bind(this);
         document.documentElement.addEventListener('click', onEvent, false);
         document.documentElement.addEventListener('submit', onEvent, false);
-        this.on('mutate', (name, prevState, nextState) => {
+        this.on('mutate', (name, nextState, prevState) => {
             if (nextState.title !== prevState.title) {
                 document.title = nextState.title;
             }
@@ -68,7 +68,7 @@ class Avalon {
             const prevState = this.state();
             const partialState = callback(prevState, data);
             this._state = createStateObject(prevState, partialState);
-            this.emit('mutate', name, prevState, this._state, partialState);
+            this.emit('mutate', name, this._state, prevState, partialState);
             return partialState;
         }
         return null;
@@ -189,6 +189,9 @@ class Avalon {
                 return;
             }
             key = isSvg ? target.href.baseVal : target.getAttribute('href');
+            if (key.indexOf('mailto:') > -1) {
+                return;
+            }
         } else {
             target = event.target;
             key = target.getAttribute('action');

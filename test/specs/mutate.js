@@ -167,8 +167,8 @@ describe('mutate', () => {
 
         const call = callback.getCall(0);
         const name = call.args[0];
-        const prevState = call.args[1];
-        const nextState = call.args[2];
+        const nextState = call.args[1];
+        const prevState = call.args[2];
         const partialState = call.args[3];
 
         expect(name).to.equal('foo');
