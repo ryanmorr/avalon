@@ -88,11 +88,9 @@ describe('view', () => {
         const app = avalon();
         let eventObject, button;
 
-        app.action('foo', ({params, event, target}) => {
+        app.action('foo', ({params, event}) => {
             expect(params).to.deep.equal({bar: 'baz'});
             expect(event).to.equal(eventObject);
-            expect(target).to.equal(event.target);
-            expect(target).to.equal(button);
             testDone();
         });
 

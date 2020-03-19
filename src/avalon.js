@@ -121,7 +121,7 @@ class Avalon {
         return null;
     }
 
-    _getDispatcher(key, params = null, event = null, target = null) {
+    _getDispatcher(key, params = null, event = null) {
         const state = this.state();
         for (const [matcher, callback] of this._actions) {
             let route = null, action = null;
@@ -138,7 +138,7 @@ class Avalon {
                 action = key;
             }
             if (action || route) {
-                const data = {route, action, state, params, event, target};
+                const data = {route, action, state, params, event};
                 return () => {
                     const params = Object.assign({
                         commit: this._committer,
@@ -166,35 +166,34 @@ class Avalon {
         if (event.defaultPrevented) {
             return;
         }
-        let target, key;
-        if (event.type === 'click') {
+        let key;
+        if (event.type === 'submit') {
+            key = event.target.getAttribute('action');
+        } else {
             if (event.button || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) {
                 return;
             }
-            target = event.target.closest('a');
-            if (!target) {
+            const link = event.target.closest('a');
+            if (!link) {
                 return;
             }
-            const isSvg = (typeof target.href === 'object') && target.href.constructor.name === 'SVGAnimatedString';
-            if (target.getAttribute('target') === '_blank') {
+            const isSvg = (typeof link.href === 'object') && link.href.constructor.name === 'SVGAnimatedString';
+            if (link.getAttribute('target') === '_blank') {
                 return;
             }
-            if (target.getAttribute('rel') === 'external') {
+            if (link.getAttribute('rel') === 'external') {
                 return;
             }
-            if (target.hasAttribute('download')) {
+            if (link.hasAttribute('download')) {
                 return;
             }
-            if (!isSvg && !isSameOrigin(target)) {
+            if (!isSvg && !isSameOrigin(link)) {
                 return;
             }
-            key = isSvg ? target.href.baseVal : target.getAttribute('href');
+            key = isSvg ? link.href.baseVal : link.getAttribute('href');
             if (key.indexOf('mailto:') > -1) {
                 return;
             }
-        } else {
-            target = event.target;
-            key = target.getAttribute('action');
         }
         if (!key) {
             return;
@@ -206,7 +205,7 @@ class Avalon {
         if (isRoute && key === this.path()) {
             return;
         }
-        const dispatch = this._getDispatcher(key, null, event, target);
+        const dispatch = this._getDispatcher(key, null, event);
         if (!dispatch) {
             return;
         }

@@ -21,9 +21,8 @@ describe('evented', () => {
 
         const app = avalon();
         const path = app.path();
-        const callback = sinon.spy(({event, target}) => {
+        const callback = sinon.spy(({event}) => {
             expect(event).to.be.a('mouseevent');
-            expect(target).to.equal(anchor);
         });
         app.action('foo', callback);
 
@@ -48,9 +47,8 @@ describe('evented', () => {
 
         const app = avalon();
         const path = app.path();
-        const callback = sinon.spy(({event, target}) => {
+        const callback = sinon.spy(({event}) => {
             expect(event).to.be.a('event');
-            expect(target).to.equal(form);
         });
         app.action('foo', callback);
 
@@ -73,9 +71,8 @@ describe('evented', () => {
         document.body.appendChild(anchor);
 
         const app = avalon();
-        const callback = sinon.spy(({event, target}) => {
+        const callback = sinon.spy(({event}) => {
             expect(event).to.be.a('mouseevent');
-            expect(target).to.equal(anchor);
         });
         app.route('/foo', callback);
 
@@ -99,9 +96,8 @@ describe('evented', () => {
         document.body.appendChild(form);
 
         const app = avalon();
-        const callback = sinon.spy(({event, target}) => {
+        const callback = sinon.spy(({event}) => {
             expect(event).to.be.a('event');
-            expect(target).to.equal(form);
         });
         app.route('/foo', callback);
 
@@ -126,8 +122,8 @@ describe('evented', () => {
         document.body.appendChild(anchor);
 
         const app = avalon();
-        const callback = sinon.spy(({target}) => {
-            expect(target).to.equal(anchor);
+        const callback = sinon.spy(({event}) => {
+            expect(event).to.be.a('mouseevent');
         });
         app.route('/foo', callback);
 
@@ -565,9 +561,8 @@ describe('evented', () => {
 
         const app = avalon();
         app.route('/foo', () => {});
-        app.on('dispatch', ({event, target}) => {
+        app.on('dispatch', ({event}) => {
             expect(event).to.be.a('mouseevent');
-            expect(target).to.equal(anchor);
             anchor.remove();
             testDone();
         });
@@ -586,9 +581,8 @@ describe('evented', () => {
 
         const app = avalon();
         app.route('/foo', () => {});
-        app.on('dispatch', ({event, target}) => {
+        app.on('dispatch', ({event}) => {
             expect(event).to.be.a('event');
-            expect(target).to.equal(form);
             form.remove();
             testDone();
         });
@@ -630,9 +624,8 @@ describe('evented', () => {
         document.body.appendChild(svg);
 
         const app = avalon();
-        const callback = sinon.spy(({event, target}) => {
+        const callback = sinon.spy(({event}) => {
             expect(event).to.be.a('mouseevent');
-            expect(target).to.equal(anchor);
         });
         app.route('/foo', callback);
 

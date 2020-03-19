@@ -22,12 +22,7 @@ function getEventDispatcher(app) {
             }
         }
         const callback = (e) => {
-            let event = null, target = null;
-            if (e instanceof Event) {
-                event = e;
-                target = e.target;
-            }
-            const dispatch = app._getDispatcher(key, params, event, target);
+            const dispatch = app._getDispatcher(key, params, (e instanceof Event) ? e : null);
             return dispatch ? dispatch() : null;
         };
         dispatchers.set([key, params], callback);

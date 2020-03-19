@@ -20,13 +20,12 @@ describe('dispatch', () => {
         const emitSpy = sinon.spy();
         app.on('foo', emitSpy);
 
-        const callback = sinon.spy(({state, action, route, params, target, event, commit, dispatch, emit}) => {
+        const callback = sinon.spy(({state, action, route, params, event, commit, dispatch, emit}) => {
             expect(action).to.equal('foo');
             expect(state).to.equal(app.state());
             expect(params).to.deep.equal(null);
             expect(route).to.equal(null);
             expect(event).to.equal(null);
-            expect(target).to.equal(null);
             expect(commit).to.be.a('function');
             commit('foo', 1);
             expect(mutatorSpy.callCount).to.equal(1);
@@ -70,13 +69,12 @@ describe('dispatch', () => {
         const emitSpy = sinon.spy();
         app.on('foo', emitSpy);
 
-        const callback = sinon.spy(({state, action, route, params, target, event, commit, dispatch, emit}) => {
+        const callback = sinon.spy(({state, action, route, params, event, commit, dispatch, emit}) => {
             expect(route).to.equal('/foo');
             expect(state).to.equal(app.state());
             expect(params).to.deep.equal(null);
             expect(action).to.equal(null);
             expect(event).to.equal(null);
-            expect(target).to.equal(null);
             expect(commit).to.be.a('function');
             commit('foo', 1);
             expect(mutatorSpy.callCount).to.equal(1);
@@ -122,7 +120,7 @@ describe('dispatch', () => {
         const app = avalon();
         app.action('foo', () => 'foobar');
 
-        const listener = sinon.spy(({action, state, params, event, target}, returnValue) => {
+        const listener = sinon.spy(({action, state, params, event}, returnValue) => {
             expect(action).to.equal('foo');
             expect(state).to.equal(app.state());
             expect(params).to.deep.equal({
@@ -131,7 +129,6 @@ describe('dispatch', () => {
                 ccc: 'qux'
             });
             expect(event).to.equal(null);
-            expect(target).to.equal(null);
             expect(returnValue).to.equal('foobar');
         });
         app.on('dispatch', listener);
@@ -148,7 +145,7 @@ describe('dispatch', () => {
         const app = avalon();
         app.route('/foo/:aaa/:bbb/:ccc', () => 'foobar');
 
-        const listener = sinon.spy(({route, state, params, event, target}, returnValue) => {
+        const listener = sinon.spy(({route, state, params, event}, returnValue) => {
             expect(route).to.equal('/foo/bar/baz/qux');
             expect(state).to.equal(app.state());
             expect(params).to.deep.equal({
@@ -157,7 +154,6 @@ describe('dispatch', () => {
                 ccc: 'qux'
             });
             expect(event).to.equal(null);
-            expect(target).to.equal(null);
             expect(returnValue).to.equal('foobar');
         });
         app.on('dispatch', listener);
