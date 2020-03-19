@@ -14,19 +14,19 @@ export default {
             name: 'avalon',
             file: pkg.browser,
             format: 'umd',
-            sourcemap: 'inline'
+            sourcemap: true
         },
         {
             banner,
             file: pkg.main,
             format: 'cjs',
-            sourcemap: 'inline'
+            sourcemap: true
         },
         {
             banner,
             file: pkg.module,
             format: 'esm',
-            sourcemap: 'inline'
+            sourcemap: true
         }
     ],
     plugins: [
