@@ -15,103 +15,107 @@ describe('evented', () => {
     }
 
     it('should automatically dispatch action on click of a link', (testDone) => {
+        const clickEvent = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            button: 0
+        });
+
         const anchor = document.createElement('a');
         anchor.href = 'foo';
         document.body.appendChild(anchor);
 
         const app = avalon();
         const path = app.path();
-        const callback = sinon.spy(({event}) => {
-            expect(event).to.be.a('mouseevent');
-        });
+        const callback = sinon.spy();
         app.action('foo', callback);
 
         app.on('dispatch', () => {
             expect(callback.callCount).to.equal(1);
+            expect(callback.args[0][0].event).to.equal(clickEvent);
             expect(app.path()).to.equal(path);
             anchor.remove();
             testDone();
         });
 
-        anchor.dispatchEvent(new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true,
-            button: 0
-        }));
+        anchor.dispatchEvent(clickEvent);
     });
 
     it('should automatically dispatch action on form submit', (testDone) => {
+        const submitEvent = new Event('submit', {
+            bubbles: true,
+            cancelable: true
+        });
+
         const form = document.createElement('form');
         form.action = 'foo';
         document.body.appendChild(form);
 
         const app = avalon();
         const path = app.path();
-        const callback = sinon.spy(({event}) => {
-            expect(event).to.be.a('event');
-        });
+        const callback = sinon.spy();
         app.action('foo', callback);
 
         app.on('dispatch', () => {
             expect(callback.callCount).to.equal(1);
+            expect(callback.args[0][0].event).to.equal(submitEvent);
             expect(app.path()).to.equal(path);
             form.remove();
             testDone();
         });
 
-        form.dispatchEvent(new Event('submit', {
-            bubbles: true,
-            cancelable: true
-        }));
+        form.dispatchEvent(submitEvent);
     });
 
     it('should automatically dispatch route on click of a link', (testDone) => {
+        const clickEvent = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            button: 0
+        });
+
         const anchor = document.createElement('a');
         anchor.href = '/foo';
         document.body.appendChild(anchor);
 
         const app = avalon();
-        const callback = sinon.spy(({event}) => {
-            expect(event).to.be.a('mouseevent');
-        });
+        const callback = sinon.spy();
         app.route('/foo', callback);
 
         app.on('dispatch', () => {
             expect(callback.callCount).to.equal(1);
+            expect(callback.args[0][0].event).to.equal(clickEvent);
             expect(app.path()).to.equal('/foo');
             anchor.remove();
             testDone();
         });
 
-        anchor.dispatchEvent(new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true,
-            button: 0
-        }));
+        anchor.dispatchEvent(clickEvent);
     });
 
     it('should automatically dispatch route on form submit', (testDone) => {
+        const submitEvent = new Event('submit', {
+            bubbles: true,
+            cancelable: true
+        });
+
         const form = document.createElement('form');
         form.action = '/foo';
         document.body.appendChild(form);
 
         const app = avalon();
-        const callback = sinon.spy(({event}) => {
-            expect(event).to.be.a('event');
-        });
+        const callback = sinon.spy();
         app.route('/foo', callback);
 
         app.on('dispatch', () => {
             expect(callback.callCount).to.equal(1);
+            expect(callback.args[0][0].event).to.equal(submitEvent);
             expect(app.path()).to.equal('/foo');
             form.remove();
             testDone();
         });
 
-        form.dispatchEvent(new Event('submit', {
-            bubbles: true,
-            cancelable: true
-        }));
+        form.dispatchEvent(submitEvent);
     });
 
     it('should automatically dispatch a route on click to nested elements within a link', (testDone) => {
@@ -554,7 +558,13 @@ describe('evented', () => {
         }));
     });
 
-    it('should provide the target and event to the route callback on click', (testDone) => {
+    it('should provide the event to the dispatch custom event on route click', (testDone) => {
+        const clickEvent = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            button: 0
+        });
+
         const anchor = document.createElement('a');
         anchor.href = '/foo';
         document.body.appendChild(anchor);
@@ -562,19 +572,20 @@ describe('evented', () => {
         const app = avalon();
         app.route('/foo', () => {});
         app.on('dispatch', ({event}) => {
-            expect(event).to.be.a('mouseevent');
+            expect(event).to.equal(clickEvent);
             anchor.remove();
             testDone();
         });
 
-        anchor.dispatchEvent(new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true,
-            button: 0
-        }));
+        anchor.dispatchEvent(clickEvent);
     });
 
-    it('should provide the target and event to the route callback on submit', (testDone) => {
+    it('should provide the event to the dispatch custom event on route submit', (testDone) => {
+        const submitEvent = new Event('submit', {
+            bubbles: true,
+            cancelable: true
+        });
+
         const form = document.createElement('form');
         form.action = '/foo';
         document.body.appendChild(form);
@@ -582,15 +593,12 @@ describe('evented', () => {
         const app = avalon();
         app.route('/foo', () => {});
         app.on('dispatch', ({event}) => {
-            expect(event).to.be.a('event');
+            expect(event).to.equal(submitEvent);
             form.remove();
             testDone();
         });
 
-        form.dispatchEvent(new Event('submit', {
-            bubbles: true,
-            cancelable: true
-        }));
+        form.dispatchEvent(submitEvent);
     });
 
     it('should emit the pathchange event on evented navigation', (testDone) => {
@@ -599,15 +607,21 @@ describe('evented', () => {
         document.body.appendChild(anchor);
 
         const app = avalon();
-        app.route('/foo', () => {});
+        const routeSpy = sinon.spy();
+        app.route('/foo', routeSpy);
+        const pathChangeSpy = sinon.spy();
+        app.on('pathchange', pathChangeSpy);
 
-        const callback = sinon.spy((type, path) => {
-            expect(type).to.equal('navigate');
-            expect(path).to.equal(app.path());
+        const dispatchSpy = sinon.spy(({route}) => {
+            expect(pathChangeSpy.callCount).to.equal(1);
+            expect(pathChangeSpy.args[0][0]).to.equal('navigate');
+            expect(pathChangeSpy.args[0][1]).to.equal(app.path());
+            expect(route).to.equal('/foo');
+
             anchor.remove();
             testDone();
         });
-        app.on('pathchange', callback);
+        app.on('dispatch', dispatchSpy);
 
         anchor.dispatchEvent(new MouseEvent('click', {
             bubbles: true,
@@ -617,6 +631,12 @@ describe('evented', () => {
     });
 
     it('should support SVG anchors', (testDone) => {
+        const clickEvent = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            button: 0
+        });
+
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         const anchor = document.createElementNS('http://www.w3.org/2000/svg', 'a');
         anchor.setAttribute('href', '/foo');
@@ -624,22 +644,17 @@ describe('evented', () => {
         document.body.appendChild(svg);
 
         const app = avalon();
-        const callback = sinon.spy(({event}) => {
-            expect(event).to.be.a('mouseevent');
-        });
+        const callback = sinon.spy();
         app.route('/foo', callback);
 
         app.on('dispatch', () => {
             expect(callback.callCount).to.equal(1);
+            expect(callback.args[0][0].event).to.equal(clickEvent)
             expect(app.path()).to.equal('/foo');
             svg.remove();
             testDone();
         });
 
-        anchor.dispatchEvent(new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true,
-            button: 0
-        }));
+        anchor.dispatchEvent(clickEvent);
     });
 });

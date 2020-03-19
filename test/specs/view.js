@@ -84,7 +84,7 @@ describe('view', () => {
         });
     });
 
-    it('should provide the event object and target element if the dispatch function is used for an event listener', (testDone) => {
+    it('should provide the event object if the dispatch function is used for an event listener', (testDone) => {
         const app = avalon();
         let eventObject, button;
 
