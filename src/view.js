@@ -1,34 +1,5 @@
-import htm from 'htm';
 import { scheduleRender } from '@ryanmorr/schedule-render';
-import { h, render } from 'carbon';
-import { isEqual } from './util';
-
-const dispatchers = new Map();
-
-const html = htm.bind((nodeName, attributes, ...children) => {
-    attributes = attributes || {};
-    if (typeof nodeName === 'function') {
-        attributes.children = children;
-        return nodeName(html, attributes);
-    }
-    return h(nodeName, attributes, ...children);
-});
-
-function getEventDispatcher(app) {
-    return (key, params = null) => {
-        for (const [dispatcherKey, callback] of dispatchers) {
-            if (dispatcherKey[0] === key && isEqual(params, dispatcherKey[1])) {
-                return callback;
-            }
-        }
-        const callback = (e) => {
-            const dispatch = app._getDispatcher(key, params, (e instanceof Event) ? e : null);
-            return dispatch ? dispatch() : null;
-        };
-        dispatchers.set([key, params], callback);
-        return callback;
-    };
-}
+import { render } from 'carbon';
 
 export default class View {
 
@@ -47,7 +18,7 @@ export default class View {
             return this.renderPromise;
         }
         return (this.renderPromise =  scheduleRender(() => {
-            const vdom = this.callback(html, this.app.state(), getEventDispatcher(this.app));
+            const vdom = this.callback(this.app.html, this.app.state(), this.app._getEventDispatcher());
             const element = render(this.parent, vdom);
             this.renderPromise = null;
             this.app.emit('render', element);

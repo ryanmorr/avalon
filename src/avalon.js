@@ -1,5 +1,7 @@
+import htm from 'htm';
+import { h } from 'carbon';
 import View from './view';
-import { addOneOrMany, createStateObject, isPath, isSameOrigin, normalizePath, getRouteMatcher } from './util';
+import { addOneOrMany, createStateObject, isPath, isSameOrigin, normalizePath, isEqual, getRouteMatcher } from './util';
 
 class Avalon {
     constructor(state = {}) {
@@ -15,10 +17,19 @@ class Avalon {
         this._views = [];
         this._committer = this.commit.bind(this);
         this._dispatcher = this.dispatch.bind(this);
+        this._dispatchers = new Map();
         this._emitter = this.emit.bind(this);
         const onEvent = this._handleEvent.bind(this);
         document.documentElement.addEventListener('click', onEvent, false);
         document.documentElement.addEventListener('submit', onEvent, false);
+        this.html = htm.bind((nodeName, attributes, ...children) => {
+            attributes = attributes || {};
+            if (typeof nodeName === 'function') {
+                attributes.children = children;
+                return nodeName(this.html, attributes, this._getEventDispatcher());
+            }
+            return h(nodeName, attributes, ...children);
+        });
         this.on('mutate', (name, nextState, prevState) => {
             if (nextState.title !== prevState.title) {
                 document.title = nextState.title;
@@ -154,6 +165,22 @@ class Avalon {
             }
         }
         return null;
+    }
+
+    _getEventDispatcher() {
+        return (key, params = null) => {
+            for (const [dispatcherKey, callback] of this._dispatchers) {
+                if (dispatcherKey[0] === key && isEqual(params, dispatcherKey[1])) {
+                    return callback;
+                }
+            }
+            const callback = (e) => {
+                const dispatch = this._getDispatcher(key, params, (e instanceof Event) ? e : null);
+                return dispatch ? dispatch() : null;
+            };
+            this._dispatchers.set([key, params], callback);
+            return callback;
+        };
     }
 
     _handlePopState() {

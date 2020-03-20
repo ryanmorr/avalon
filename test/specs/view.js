@@ -69,7 +69,7 @@ describe('view', () => {
             const foo = dispatch('foo', params);
             expect(foo).to.be.a('function');
             foo();
-            expect(fooSpy.called).to.equal(true);
+            expect(fooSpy.callCount).to.equal(1);
             expect(fooSpy.args[0][0].params).to.equal(params);
 
             return html`<div></div>`;
@@ -171,7 +171,7 @@ describe('view', () => {
         app.view(root, callback);
 
         requestAnimationFrame(() => {
-            expect(callback.called).to.equal(true);
+            expect(callback.callCount).to.equal(1);
             testDone();
         });
     });
@@ -293,10 +293,26 @@ describe('view', () => {
     it('should support functional components', (testDone) => {
         const app = avalon();
 
-        const Component = sinon.spy((html, {foo, bar, children}) => html`<div id=${foo} class=${bar}>${children}</div>`);
+        const fooSpy = sinon.spy(() => ({}));
+        app.action('foo', fooSpy);
+
+        const Component = sinon.spy((html, {id, cls, children}, dispatch) => {
+            expect(dispatch).to.be.a('function');
+            const params = {
+                foo: 1,
+                bar: 2
+            };
+            const foo = dispatch('foo', params);
+            expect(foo).to.be.a('function');
+            foo();
+            expect(fooSpy.callCount).to.equal(1);
+            expect(fooSpy.args[0][0].params).to.equal(params);
+
+            return html`<div id=${id} class=${cls}>${children}</div>`
+        });
 
         const root = document.createElement('div');
-        app.view(root, (html) => html`<${Component} foo="abc" bar="123">baz<//>`);
+        app.view(root, (html) => html`<${Component} id="abc" cls="123">baz<//>`);
 
         requestAnimationFrame(() => {
             expect(root.innerHTML).to.equal('<div id="abc" class="123">baz</div>');
