@@ -649,7 +649,7 @@ describe('evented', () => {
 
         app.on('dispatch', () => {
             expect(callback.callCount).to.equal(1);
-            expect(callback.args[0][0].event).to.equal(clickEvent)
+            expect(callback.args[0][0].event).to.equal(clickEvent);
             expect(app.path()).to.equal('/foo');
             svg.remove();
             testDone();

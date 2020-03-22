@@ -308,7 +308,7 @@ describe('view', () => {
             expect(fooSpy.callCount).to.equal(1);
             expect(fooSpy.args[0][0].params).to.equal(params);
 
-            return html`<div id=${id} class=${cls}>${children}</div>`
+            return html`<div id=${id} class=${cls}>${children}</div>`;
         });
 
         const root = document.createElement('div');

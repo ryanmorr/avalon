@@ -224,11 +224,11 @@ class Avalon {
         });
     }
 
-    commit(name, data = null) {
+    commit(name, payload = null) {
         const callback = this._mutators[name];
         if (callback) {
             const prevState = this.state();
-            const partialState = callback(prevState, data);
+            const partialState = callback(prevState, payload);
             this._state = createStateObject(prevState, partialState);
             this.emit('mutate', name, this._state, prevState, partialState);
             return partialState;
