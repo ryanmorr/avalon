@@ -324,6 +324,9 @@ describe('view', () => {
     it('should support views with multiple root elements', (testDone) => {
         const app = avalon({foo: 1, bar: 2});
 
+        const renderSpy = sinon.spy();
+        app.on('render', renderSpy);
+
         const root = document.createElement('div');
         app.view(root, (html, {foo, bar}) => html`
             <div>${foo}</div>
@@ -335,9 +338,18 @@ describe('view', () => {
         requestAnimationFrame(() => {
             expect(root.innerHTML).to.equal('<div>1</div><span>2</span>');
 
+            const children = Array.from(root.childNodes);
+
+            expect(renderSpy.callCount).to.equal(1);
+            expect(renderSpy.args[0][0]).to.deep.equal(children);
+
             app.commit('foobar');
             requestAnimationFrame(() => {
                 expect(root.innerHTML).to.equal('<div>10</div><span>20</span>');
+
+                expect(renderSpy.callCount).to.equal(2);
+                expect(renderSpy.args[1][0]).to.deep.equal(children);
+
                 testDone();
             });
         });
