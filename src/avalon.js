@@ -1,5 +1,5 @@
 import htm from 'htm';
-import { h, render as doRender } from 'carbon';
+import { h, render as doRender } from '@ryanmorr/carbon';
 import { scheduleRender } from '@ryanmorr/schedule-render';
 
 const TRAILING_SLASH_RE = /\/$/;
