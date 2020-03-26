@@ -13,20 +13,17 @@ export default {
             banner,
             name: 'avalon',
             file: pkg.browser,
-            format: 'umd',
-            sourcemap: true
+            format: 'umd'
         },
         {
             banner,
             file: pkg.main,
-            format: 'cjs',
-            sourcemap: true
+            format: 'cjs'
         },
         {
             banner,
             file: pkg.module,
-            format: 'esm',
-            sourcemap: true
+            format: 'esm'
         }
     ],
     plugins: [
