@@ -2,7 +2,7 @@ import '../setup';
 
 import './history';
 import './avalon';
-import './mutate';
+import './mutation';
 import './dispatch';
 import './router';
 import './evented';

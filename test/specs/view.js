@@ -37,7 +37,7 @@ describe('view', () => {
         const callback = sinon.spy((html, state) => html`<div>${state.foo}</div>`);
         app.view(root, callback);
 
-        app.mutate('foo', () => ({foo: 2}));
+        app.mutation('foo', () => ({foo: 2}));
 
         requestAnimationFrame(() => {
             expect(callback.callCount).to.equal(1);
@@ -196,7 +196,7 @@ describe('view', () => {
         const app = avalon();
 
         let n = 1;
-        app.mutate('foo', () => ({foo: n++}));
+        app.mutation('foo', () => ({foo: n++}));
 
         const root = document.createElement('div');
         const callback = sinon.spy((html) => html`<div></div>`);
@@ -214,7 +214,7 @@ describe('view', () => {
 
     it('should emit the render event when a view has been rendered', (testDone) => {
         const app = avalon({foo: 1});
-        app.mutate('foo', () => ({foo: 2}));
+        app.mutation('foo', () => ({foo: 2}));
 
         const root = document.createElement('div');
 
@@ -274,7 +274,7 @@ describe('view', () => {
     it('should support multiple renderings', (testDone) => {
         const app = avalon({count: 0});
 
-        app.mutate('increment', ({count}) => ({count: count + 1}));
+        app.mutation('increment', ({count}) => ({count: count + 1}));
 
         const root = document.createElement('div');
         app.view(root, (html, {count}) => html`<div>${count}</div>`);
@@ -333,7 +333,7 @@ describe('view', () => {
             <span>${bar}</span>
         `);
 
-        app.mutate('foobar', () => ({foo: 10, bar: 20}));
+        app.mutation('foobar', () => ({foo: 10, bar: 20}));
 
         requestAnimationFrame(() => {
             expect(root.innerHTML).to.equal('<div>1</div><span>2</span>');

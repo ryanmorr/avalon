@@ -162,7 +162,7 @@ class Avalon {
             state.title = document.title;
         }
         this._state = createStateObject(state);
-        this._mutators = Object.create(null);
+        this._mutations = Object.create(null);
         this._actions = new Map();
         this._events = new Map();
         this._views = [];
@@ -181,7 +181,7 @@ class Avalon {
             }
             return h(nodeName, attributes, ...children);
         });
-        this.on('mutate', (name, nextState, prevState) => {
+        this.on('mutation', (name, nextState, prevState) => {
             if (nextState.title !== prevState.title) {
                 document.title = nextState.title;
             }
@@ -218,19 +218,19 @@ class Avalon {
         }
     }
 
-    mutate(name, callback) {
+    mutation(name, callback) {
         addOneOrMany(name, callback, (key, value) => {
-            this._mutators[key] = value;
+            this._mutations[key] = value;
         });
     }
 
     commit(name, payload = null) {
-        const callback = this._mutators[name];
+        const callback = this._mutations[name];
         if (callback) {
             const prevState = this.state();
             const partialState = callback(prevState, payload);
             this._state = createStateObject(prevState, partialState);
-            this.emit('mutate', name, this._state, prevState, partialState);
+            this.emit('mutation', name, this._state, prevState, partialState);
             return partialState;
         }
         return null;

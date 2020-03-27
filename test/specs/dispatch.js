@@ -11,8 +11,8 @@ describe('dispatch', () => {
     it('should dispatch an action', () => {
         const app = avalon(initialState);
 
-        const mutatorSpy = sinon.spy((state, n) => ({foo: n}));
-        app.mutate('foo', mutatorSpy);
+        const mutationSpy = sinon.spy((state, n) => ({foo: n}));
+        app.mutation('foo', mutationSpy);
 
         const dispatchSpy = sinon.spy(() => 123);
         app.action('bar', dispatchSpy);
@@ -28,7 +28,7 @@ describe('dispatch', () => {
             expect(event).to.equal(null);
             expect(commit).to.be.a('function');
             commit('foo', 1);
-            expect(mutatorSpy.callCount).to.equal(1);
+            expect(mutationSpy.callCount).to.equal(1);
             expect(app.state()).to.deep.equal({...initialState, foo: 1});
             expect(dispatch).to.be.a('function');
             expect(dispatch('bar')).to.equal(123);
@@ -60,8 +60,8 @@ describe('dispatch', () => {
     it('should dispatch a route', () => {
         const app = avalon(initialState);
 
-        const mutatorSpy = sinon.spy((state, n) => ({foo: n}));
-        app.mutate('foo', mutatorSpy);
+        const mutationSpy = sinon.spy((state, n) => ({foo: n}));
+        app.mutation('foo', mutationSpy);
 
         const dispatchSpy = sinon.spy(() => 123);
         app.action('bar', dispatchSpy);
@@ -77,7 +77,7 @@ describe('dispatch', () => {
             expect(event).to.equal(null);
             expect(commit).to.be.a('function');
             commit('foo', 1);
-            expect(mutatorSpy.callCount).to.equal(1);
+            expect(mutationSpy.callCount).to.equal(1);
             expect(app.state()).to.deep.equal({...initialState, foo: 1});
             expect(dispatch).to.be.a('function');
             expect(dispatch('bar')).to.equal(123);

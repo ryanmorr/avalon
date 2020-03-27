@@ -1,6 +1,6 @@
 import avalon from '../../src/avalon';
 
-describe('mutate', () => {
+describe('mutation', () => {
     let initialState = {title: 'Hello World'};
 
     afterEach(() => {
@@ -12,7 +12,7 @@ describe('mutate', () => {
         const app = avalon(initialState);
 
         const callback = sinon.spy(() => ({foo: 1}));
-        app.mutate('foo', callback);
+        app.mutation('foo', callback);
 
         const state = app.state();
         const partialState = app.commit('foo');
@@ -28,7 +28,7 @@ describe('mutate', () => {
         const app = avalon(initialState);
 
         const callback = sinon.spy((state, data) => ({foo: data}));
-        app.mutate('foo', callback);
+        app.mutation('foo', callback);
 
         const state1 = app.state();
         const partialState1 = app.commit('foo', 2);
@@ -53,8 +53,8 @@ describe('mutate', () => {
         const obj = {};
         const app = avalon(obj);
         const state1 = app.state();
-        app.mutate('foo', () => obj);
-        app.mutate('bar', () => obj);
+        app.mutation('foo', () => obj);
+        app.mutation('bar', () => obj);
 
         app.commit('foo');
         const state2 = app.state();
@@ -71,7 +71,7 @@ describe('mutate', () => {
 
     it('should perform a shallow copy of the state returned by a mutator with the current state', () => {
         const app = avalon({...initialState, foo: 1, bar: 2, baz: 3});
-        app.mutate('foo', () => ({qux: 4}));
+        app.mutation('foo', () => ({qux: 4}));
 
         app.commit('foo');
         expect(app.state()).to.deep.equal({...initialState, foo: 1, bar: 2, baz: 3, qux: 4});
@@ -81,9 +81,9 @@ describe('mutate', () => {
         const state = {...initialState, array: [1, 2, 3]};
         const app = avalon(state);
 
-        app.mutate('foo', ({state}) => ({...state}));
-        app.mutate('bar', ({state}) => (state));
-        app.mutate('baz', () => ({array: [3, 2, 1]}));
+        app.mutation('foo', ({state}) => ({...state}));
+        app.mutation('bar', ({state}) => (state));
+        app.mutation('baz', () => ({array: [3, 2, 1]}));
 
         expect(app.state()).to.not.equal(state);
         expect(app.state().array).to.equal(state.array);
@@ -115,7 +115,7 @@ describe('mutate', () => {
         };
 
         const app = avalon();
-        app.mutate('foo', () => (obj));
+        app.mutation('foo', () => (obj));
         app.commit('foo');
         const state = app.state();
 
@@ -157,10 +157,10 @@ describe('mutate', () => {
     it('should emit the mutate event when the state has changed', () => {
         const app = avalon({...initialState, foo: 1});
         const originalState = app.state();
-        app.mutate('foo', () => ({bar: 2}));
+        app.mutation('foo', () => ({bar: 2}));
 
         const callback = sinon.spy();
-        app.on('mutate', callback);
+        app.on('mutation', callback);
 
         app.commit('foo');
         expect(callback.callCount).to.equal(1);
@@ -183,7 +183,7 @@ describe('mutate', () => {
 
     it('should set the document title if the title property is changed', () => {
         const app = avalon(initialState);
-        app.mutate('title', () => ({title: 'foo'}));
+        app.mutation('title', () => ({title: 'foo'}));
 
         app.commit('title');
         expect(app.state().title).to.equal('foo');
@@ -195,7 +195,7 @@ describe('mutate', () => {
 
         const callback = sinon.spy(() => ({foo: 1}));
 
-        app.mutate({
+        app.mutation({
             foo: callback,
             bar: callback,
             baz: callback
