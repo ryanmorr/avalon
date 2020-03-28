@@ -614,8 +614,7 @@ describe('evented', () => {
 
         const dispatchSpy = sinon.spy(({route}) => {
             expect(pathChangeSpy.callCount).to.equal(1);
-            expect(pathChangeSpy.args[0][0]).to.equal('navigate');
-            expect(pathChangeSpy.args[0][1]).to.equal(app.path());
+            expect(pathChangeSpy.args[0][0]).to.equal(app.path());
             expect(route).to.equal('/foo');
 
             anchor.remove();

@@ -293,7 +293,7 @@ class Avalon {
         const dispatch = this._getDispatcher(path);
         if (dispatch) {
             history[type === 'redirect' ? 'replaceState' : 'pushState'](null, '', path);
-            this.emit('pathchange', type, path);
+            this.emit('pathchange', path);
             return dispatch();
         }
         return null;
@@ -353,7 +353,7 @@ class Avalon {
     _handlePopState() {
         const path = this.path();
         this.dispatch(path);
-        this.emit('pathchange', 'pop', path);
+        this.emit('pathchange', path);
     }
 
     _handleEvent(event) {
@@ -406,7 +406,7 @@ class Avalon {
         event.preventDefault();
         if (isRoute) {
             history.pushState(null, '', key);
-            this.emit('pathchange', 'navigate', key);
+            this.emit('pathchange', key);
         }
         dispatch();
     }

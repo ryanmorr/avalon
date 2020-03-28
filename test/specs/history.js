@@ -57,8 +57,7 @@ describe('history', () => {
             e.preventDefault();
             expect(app.path()).to.equal('/foo');
             expect(callback.callCount).to.equal(1);
-            expect(callback.args[0][0]).to.equal('pop');
-            expect(callback.args[0][1]).to.equal(app.path());
+            expect(callback.args[0][0]).to.equal(app.path());
 
             window.removeEventListener('popstate', onPopState);
             testDone();
@@ -79,15 +78,13 @@ describe('history', () => {
             e.preventDefault();
             if (callback.callCount === 1) {
                 expect(app.path()).to.equal('/');
-                expect(callback.args[0][0]).to.equal('pop');
-                expect(callback.args[0][1]).to.equal(app.path());
+                expect(callback.args[0][0]).to.equal(app.path());
 
                 history.forward();
             } else {
                 expect(app.path()).to.equal('/foo');
                 expect(callback.callCount).to.equal(2);
-                expect(callback.args[1][0]).to.equal('pop');
-                expect(callback.args[1][1]).to.equal(app.path());
+                expect(callback.args[1][0]).to.equal(app.path());
 
                 window.removeEventListener('popstate', onPopState);
                 testDone();
@@ -190,8 +187,7 @@ describe('history', () => {
         app.redirect('/foo');
 
         expect(callback.callCount).to.equal(1);
-        expect(callback.args[0][0]).to.equal('redirect');
-        expect(callback.args[0][1]).to.equal(app.path());
+        expect(callback.args[0][0]).to.equal(app.path());
     });
 
     it('should not redirect if no corresponding route was found', () => {
@@ -250,7 +246,6 @@ describe('history', () => {
         app.navigate('/foo');
 
         expect(callback.callCount).to.equal(1);
-        expect(callback.args[0][0]).to.equal('navigate');
-        expect(callback.args[0][1]).to.equal(app.path());
+        expect(callback.args[0][0]).to.equal(app.path());
     });
 });
