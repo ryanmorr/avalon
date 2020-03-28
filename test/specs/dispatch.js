@@ -29,7 +29,7 @@ describe('dispatch', () => {
 
         const callback = sinon.spy(({state, params, event, commit, dispatch, navigate, redirect, emit}) => {
             expect(state).to.equal(app.state());
-            expect(params).to.deep.equal(null);
+            expect(params).to.equal(null);
             expect(event).to.equal(null);
 
             expect(commit).to.be.a('function');
@@ -92,9 +92,10 @@ describe('dispatch', () => {
         const emitSpy = sinon.spy();
         app.on('foo', emitSpy);
 
-        const callback = sinon.spy(({state, params, event, commit, dispatch, navigate, redirect, emit}) => {
+        const callback = sinon.spy(({state, path, params, event, commit, dispatch, navigate, redirect, emit}) => {
             expect(state).to.equal(app.state());
-            expect(params).to.deep.equal(null);
+            expect(path).to.equal('/foo');
+            expect(params).to.equal(null);
             expect(event).to.equal(null);
 
             expect(commit).to.be.a('function');

@@ -328,6 +328,9 @@ class Avalon {
                         redirect: this._redirect,
                         emit: this._emit
                     };
+                    if (type === 'route') {
+                        data.path = key;
+                    }
                     const value = (callback.length < 2) ? callback(data) : new Promise((resolve, reject) => callback(data, resolve, reject));
                     this.emit('dispatch', type, key, this.state(), params, event, value);
                     return value;
