@@ -165,11 +165,13 @@ class Avalon {
         this._mutations = Object.create(null);
         this._actions = new Map();
         this._events = new Map();
-        this._views = [];
-        this._committer = this.commit.bind(this);
-        this._dispatcher = this.dispatch.bind(this);
         this._dispatchers = new Map();
-        this._emitter = this.emit.bind(this);
+        this._views = [];
+        this._commit = this.commit.bind(this);
+        this._dispatch = this.dispatch.bind(this);
+        this._redirect = this.redirect.bind(this);
+        this._navigate = this.navigate.bind(this);
+        this._emit = this.emit.bind(this);
         const onEvent = this._handleEvent.bind(this);
         document.documentElement.addEventListener('click', onEvent, false);
         document.documentElement.addEventListener('submit', onEvent, false);
@@ -300,33 +302,34 @@ class Avalon {
     }
 
     _getDispatcher(key, params = null, event = null) {
-        const state = this.state();
         for (const [matcher, callback] of this._actions) {
-            let route = null, action = null;
+            let type;
             if (isPath(key) && typeof matcher !== 'string') {
                 const path = normalizePath(key);
                 params = matcher(path);
                 if (params) {
-                    route = path;
+                    type = 'route';
                     if (Object.keys(params).length === 0) {
                         params = null;
                     }
                 }
             } else if (matcher === key) {
-                action = key;
+                type = 'action';
             }
-            if (action || route) {
-                const data = {route, action, state, params, event};
+            if (type) {
                 return () => {
-                    const params = Object.assign({
-                        commit: this._committer,
-                        dispatch: this._dispatcher,
-                        emit: this._emitter
-                    }, data);
-                    const value = (callback.length < 2) ?
-                        callback(params) :
-                        new Promise((resolve, reject) => callback(params, resolve, reject));
-                    this.emit('dispatch', data, value);
+                    const data = {
+                        params,
+                        event,
+                        state: this.state(),
+                        commit: this._commit,
+                        dispatch: this._dispatch,
+                        navigate: this._navigate,
+                        redirect: this._redirect,
+                        emit: this._emit
+                    };
+                    const value = (callback.length < 2) ? callback(data) : new Promise((resolve, reject) => callback(data, resolve, reject));
+                    this.emit('dispatch', type, key, this.state(), params, event, value);
                     return value;
                 };
             }

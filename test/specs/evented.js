@@ -543,8 +543,8 @@ describe('evented', () => {
         const callback = sinon.spy();
         app.route('/foo', callback);
 
-        app.on('dispatch', ({route}) => {
-            expect(route).to.equal('/foo');
+        app.on('dispatch', (type, path) => {
+            expect(path).to.equal('/foo');
             expect(app.path()).to.equal('/foo');
             expect(callback.callCount).to.equal(1);
             anchor.remove();
@@ -571,7 +571,7 @@ describe('evented', () => {
 
         const app = avalon();
         app.route('/foo', () => {});
-        app.on('dispatch', ({event}) => {
+        app.on('dispatch', (type, name, state, params, event) => {
             expect(event).to.equal(clickEvent);
             anchor.remove();
             testDone();
@@ -592,7 +592,7 @@ describe('evented', () => {
 
         const app = avalon();
         app.route('/foo', () => {});
-        app.on('dispatch', ({event}) => {
+        app.on('dispatch', (type, name, state, params, event) => {
             expect(event).to.equal(submitEvent);
             form.remove();
             testDone();
@@ -612,10 +612,10 @@ describe('evented', () => {
         const pathChangeSpy = sinon.spy();
         app.on('pathchange', pathChangeSpy);
 
-        const dispatchSpy = sinon.spy(({route}) => {
+        const dispatchSpy = sinon.spy((type, path) => {
             expect(pathChangeSpy.callCount).to.equal(1);
             expect(pathChangeSpy.args[0][0]).to.equal(app.path());
-            expect(route).to.equal('/foo');
+            expect(path).to.equal('/foo');
 
             anchor.remove();
             testDone();

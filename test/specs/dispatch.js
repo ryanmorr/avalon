@@ -6,6 +6,7 @@ describe('dispatch', () => {
     afterEach(() => {
         document.title = 'Hello World';
         initialState = {title: 'Hello World'};
+        history.replaceState(null, '', '/');
     });
 
     it('should dispatch an action', () => {
@@ -17,25 +18,41 @@ describe('dispatch', () => {
         const dispatchSpy = sinon.spy(() => 123);
         app.action('bar', dispatchSpy);
 
+        const route1Spy = sinon.spy(() => 321);
+        app.route('/abc', route1Spy);
+
+        const route2Spy = sinon.spy(() => 789);
+        app.route('/xyz', route2Spy);
+
         const emitSpy = sinon.spy();
         app.on('foo', emitSpy);
 
-        const callback = sinon.spy(({state, action, route, params, event, commit, dispatch, emit}) => {
-            expect(action).to.equal('foo');
+        const callback = sinon.spy(({state, params, event, commit, dispatch, navigate, redirect, emit}) => {
             expect(state).to.equal(app.state());
             expect(params).to.deep.equal(null);
-            expect(route).to.equal(null);
             expect(event).to.equal(null);
+
             expect(commit).to.be.a('function');
             commit('foo', 1);
             expect(mutationSpy.callCount).to.equal(1);
             expect(app.state()).to.deep.equal({...initialState, foo: 1});
+
             expect(dispatch).to.be.a('function');
             expect(dispatch('bar')).to.equal(123);
             expect(dispatchSpy.callCount).to.equal(1);
+
+            expect(navigate).to.be.a('function');
+            expect(navigate('/abc')).to.equal(321);
+            expect(route1Spy.callCount).to.equal(1);
+
+            expect(redirect).to.be.a('function');
+            expect(redirect('/xyz')).to.equal(789);
+            expect(route2Spy.callCount).to.equal(1);
+
             expect(emit).to.be.a('function');
             emit('foo');
             expect(emitSpy.callCount).to.equal(1);
+
             return 'foobar';
         });
 
@@ -66,25 +83,41 @@ describe('dispatch', () => {
         const dispatchSpy = sinon.spy(() => 123);
         app.action('bar', dispatchSpy);
 
+        const route1Spy = sinon.spy(() => 321);
+        app.route('/abc', route1Spy);
+
+        const route2Spy = sinon.spy(() => 789);
+        app.route('/xyz', route2Spy);
+
         const emitSpy = sinon.spy();
         app.on('foo', emitSpy);
 
-        const callback = sinon.spy(({state, action, route, params, event, commit, dispatch, emit}) => {
-            expect(route).to.equal('/foo');
+        const callback = sinon.spy(({state, params, event, commit, dispatch, navigate, redirect, emit}) => {
             expect(state).to.equal(app.state());
             expect(params).to.deep.equal(null);
-            expect(action).to.equal(null);
             expect(event).to.equal(null);
+
             expect(commit).to.be.a('function');
             commit('foo', 1);
             expect(mutationSpy.callCount).to.equal(1);
             expect(app.state()).to.deep.equal({...initialState, foo: 1});
+
             expect(dispatch).to.be.a('function');
             expect(dispatch('bar')).to.equal(123);
             expect(dispatchSpy.callCount).to.equal(1);
+
+            expect(navigate).to.be.a('function');
+            expect(navigate('/abc')).to.equal(321);
+            expect(route1Spy.callCount).to.equal(1);
+
+            expect(redirect).to.be.a('function');
+            expect(redirect('/xyz')).to.equal(789);
+            expect(route2Spy.callCount).to.equal(1);
+
             expect(emit).to.be.a('function');
             emit('foo');
             expect(emitSpy.callCount).to.equal(1);
+
             return 'foobar';
         });
 
@@ -117,12 +150,15 @@ describe('dispatch', () => {
     });
 
     it('should emit the dispatch event when an action is dispatched', () => {
-        const app = avalon();
-        app.action('foo', () => 'foobar');
+        const app = avalon({foo: 1});
+        app.mutation('foo', () => ({foo: 2}));
+        app.action('foo', ({commit}) => commit('foo') && 'foobar');
 
-        const listener = sinon.spy(({action, state, params, event}, returnValue) => {
-            expect(action).to.equal('foo');
+        const listener = sinon.spy((type, name, state, params, event, returnValue) => {
+            expect(type).to.equal('action');
+            expect(name).to.equal('foo');
             expect(state).to.equal(app.state());
+            expect(state).to.deep.equal({...initialState, foo: 2});
             expect(params).to.deep.equal({
                 aaa: 'bar',
                 bbb: 'baz',
@@ -131,6 +167,7 @@ describe('dispatch', () => {
             expect(event).to.equal(null);
             expect(returnValue).to.equal('foobar');
         });
+
         app.on('dispatch', listener);
 
         app.dispatch('foo', {
@@ -142,12 +179,15 @@ describe('dispatch', () => {
     });
 
     it('should emit the dispatch event when a route is dispatched', () => {
-        const app = avalon();
-        app.route('/foo/:aaa/:bbb/:ccc', () => 'foobar');
+        const app = avalon({foo: 1});
+        app.mutation('foo', () => ({foo: 2}));
+        app.route('/foo/:aaa/:bbb/:ccc', ({commit}) => commit('foo') && 'foobar');
 
-        const listener = sinon.spy(({route, state, params, event}, returnValue) => {
-            expect(route).to.equal('/foo/bar/baz/qux');
+        const listener = sinon.spy((type, path, state, params, event, returnValue) => {
+            expect(type).to.equal('route');
+            expect(path).to.equal('/foo/bar/baz/qux');
             expect(state).to.equal(app.state());
+            expect(state).to.deep.equal({...initialState, foo: 2});
             expect(params).to.deep.equal({
                 aaa: 'bar',
                 bbb: 'baz',
@@ -156,6 +196,7 @@ describe('dispatch', () => {
             expect(event).to.equal(null);
             expect(returnValue).to.equal('foobar');
         });
+
         app.on('dispatch', listener);
 
         app.dispatch('/foo/bar/baz/qux');
@@ -198,7 +239,7 @@ describe('dispatch', () => {
             setTimeout(() => done('foo'), 100);
         });
 
-        app.on('dispatch', (data, promise) => {
+        app.on('dispatch', (type, name, state, params, event, promise) => {
             expect(promise).to.be.a('promise');
             promise.then((value) => {
                 expect(value).to.equal('foo');
@@ -212,46 +253,46 @@ describe('dispatch', () => {
     it('should support adding multiple actions via an object literal', () => {
         const app = avalon();
 
-        const callback = sinon.spy();
+        const fooCallback = sinon.spy();
+        const barCallback = sinon.spy();
+        const bazCallback = sinon.spy();
+
         app.action({
-            foo: callback,
-            bar: callback,
-            baz: callback
+            foo: fooCallback,
+            bar: barCallback,
+            baz: bazCallback
         });
 
         app.dispatch('foo');
-        expect(callback.callCount).to.equal(1);
-        expect(callback.args[0][0].action).to.equal('foo');
+        expect(fooCallback.callCount).to.equal(1);
 
         app.dispatch('bar');
-        expect(callback.callCount).to.equal(2);
-        expect(callback.args[1][0].action).to.equal('bar');
+        expect(barCallback.callCount).to.equal(1);
 
         app.dispatch('baz');
-        expect(callback.callCount).to.equal(3);
-        expect(callback.args[2][0].action).to.equal('baz');
+        expect(bazCallback.callCount).to.equal(1);
     });
 
     it('should support adding multiple routes via an object literal', () => {
         const app = avalon();
 
-        const callback = sinon.spy();
+        const fooCallback = sinon.spy();
+        const barCallback = sinon.spy();
+        const bazCallback = sinon.spy();
+
         app.route({
-            '/foo': callback,
-            '/bar': callback,
-            '/baz': callback
+            '/foo': fooCallback,
+            '/bar': barCallback,
+            '/baz': bazCallback
         });
 
         app.dispatch('/foo');
-        expect(callback.callCount).to.equal(1);
-        expect(callback.args[0][0].route).to.equal('/foo');
+        expect(fooCallback.callCount).to.equal(1);
 
         app.dispatch('/bar');
-        expect(callback.callCount).to.equal(2);
-        expect(callback.args[1][0].route).to.equal('/bar');
+        expect(barCallback.callCount).to.equal(1);
 
         app.dispatch('/baz');
-        expect(callback.callCount).to.equal(3);
-        expect(callback.args[2][0].route).to.equal('/baz');
+        expect(bazCallback.callCount).to.equal(1);
     });
 });
