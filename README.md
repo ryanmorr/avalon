@@ -248,7 +248,7 @@ Subscribe to application events, returns a function to remove that specific subs
 
 ```javascript
 // Listen for state changes
-app.on('mutation', (mutatorName, nextState, prevState, partialState) => {
+app.on('mutation', (name, nextState, prevState, partialState) => {
     // Do something
 });
 
