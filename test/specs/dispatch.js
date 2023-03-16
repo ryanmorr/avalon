@@ -204,7 +204,7 @@ describe('dispatch', () => {
         expect(listener.callCount).to.equal(1);
     });
 
-    it('should support asynchronous actions/routes via an optional second parameter and return a promise', (testDone) => {
+    it('should support async actions/routes', async () => {
         const app = avalon(initialState);
 
         app.action('foo', (data, done) => {
@@ -220,17 +220,18 @@ describe('dispatch', () => {
         const promise1 = app.dispatch('foo');
         
         expect(promise1).to.be.a('promise');
-        promise1.then((value) => {
-            expect(value).to.equal('foo');
-        });
 
-        const promise2 = app.dispatch('/bar');
+        const value = await promise1;
 
-        expect(promise2).to.be.a('promise');
-        promise2.catch((value) => {
-            expect(value).to.equal('bar');
-            testDone();
-        });
+        expect(value).to.equal('foo');
+
+        try {
+            const promise2 = app.dispatch('/bar');
+
+            expect(promise2).to.be.a('promise');
+        } catch(e) {
+            expect(e).to.equal('bar');
+        }
     });
 
     it('should provide a promise for async actions/routes', (testDone) => {

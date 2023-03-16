@@ -1,21 +1,22 @@
 import avalon from '../../src/avalon';
 
 describe('view', () => {
-    it('should immediately render a view', (testDone) => {
+    const wait = () => new Promise((resolve) => requestAnimationFrame(resolve));
+
+    it('should immediately render a view', async () => {
         const app = avalon({foo: 1});
 
         const root = document.createElement('div');
         const callback = sinon.spy((html, state) => html`<div>${state.foo}</div>`);
         app.view(root, callback);
 
-        requestAnimationFrame(() => {
-            expect(callback.callCount).to.equal(1);
-            expect(root.innerHTML).to.equal('<div>1</div>');
-            testDone();
-        });
+        await wait();
+
+        expect(callback.callCount).to.equal(1);
+        expect(root.innerHTML).to.equal('<div>1</div>');
     });
 
-    it('should support a selector string for a parent element', (testDone) => {
+    it('should support a selector string for a parent element', async () => {
         const app = avalon();
 
         const root = document.createElement('div');
@@ -23,14 +24,13 @@ describe('view', () => {
         document.body.appendChild(root);
         app.view('#foo', (html) => html`<div></div>`);
 
-        requestAnimationFrame(() => {
-            expect(root.innerHTML).to.equal('<div></div>');
-            root.remove();
-            testDone();
-        });
+        await wait();
+
+        expect(root.innerHTML).to.equal('<div></div>');
+        root.remove();
     });
 
-    it('should update a view when the state changes', (testDone) => {
+    it('should update a view when the state changes', async () => {
         const app = avalon({foo: 1});
 
         const root = document.createElement('div');
@@ -39,20 +39,20 @@ describe('view', () => {
 
         app.mutation('foo', () => ({foo: 2}));
 
-        requestAnimationFrame(() => {
-            expect(callback.callCount).to.equal(1);
-            expect(root.innerHTML).to.equal('<div>1</div>');
+        await wait();
 
-            app.commit('foo');
-            requestAnimationFrame(() => {
-                expect(callback.callCount).to.equal(2);
-                expect(root.innerHTML).to.equal('<div>2</div>');
-                testDone();
-            });
-        });
+        expect(callback.callCount).to.equal(1);
+        expect(root.innerHTML).to.equal('<div>1</div>');
+
+        app.commit('foo');
+
+        await wait();
+
+        expect(callback.callCount).to.equal(2);
+        expect(root.innerHTML).to.equal('<div>2</div>');
     });
 
-    it('should provide the current state and dispatch function to the view callback function', (testDone) => {
+    it('should provide the current state and dispatch function to the view callback function', async () => {
         const app = avalon();
 
         const fooSpy = sinon.spy(() => ({}));
@@ -78,10 +78,9 @@ describe('view', () => {
         const root = document.createElement('div');
         app.view(root, callback);
 
-        requestAnimationFrame(() => {
-            expect(callback.callCount).to.equal(1);
-            testDone();
-        });
+        await wait();
+
+        expect(callback.callCount).to.equal(1);
     });
 
     it('should provide the event object if the dispatch function is used for an event listener', (testDone) => {
@@ -97,14 +96,14 @@ describe('view', () => {
         const root = document.createElement('div');
         app.view(root, (html, state, dispatch) => html`<button onclick=${dispatch('foo', {bar: 'baz'})}></button>`);
 
-        requestAnimationFrame(() => {
+        wait().then(() => {
             button = root.querySelector('button');
             eventObject = new Event('click');
             button.dispatchEvent(eventObject);
         });
     });
     
-    it('should provide the same dispatch function if the name and params are equal to prevent patching event listeners on every render', (testDone) => {
+    it('should provide the same dispatch function if the name and params are equal to prevent patching event listeners on every render', async () => {
         const app = avalon();
 
         app.action('foo', () => {});
@@ -170,13 +169,12 @@ describe('view', () => {
         const root = document.createElement('div');
         app.view(root, callback);
 
-        requestAnimationFrame(() => {
-            expect(callback.callCount).to.equal(1);
-            testDone();
-        });
+        await wait();
+
+        expect(callback.callCount).to.equal(1);
     });
 
-    it('should schedule a frame when the views are patched', (testDone) => {
+    it('should schedule a frame when the views are patched', () => {
         const requestSpy = sinon.spy(window, 'requestAnimationFrame');
 
         const app = avalon();
@@ -185,14 +183,9 @@ describe('view', () => {
         app.view(root, (html) => html`<div></div>`);
 
         expect(requestSpy.callCount).to.equal(1);
-
-        requestAnimationFrame(() => {
-            requestSpy.restore();
-            testDone();
-        });
     });
 
-    it('should invoke the view callback once per frame', (testDone) => {
+    it('should invoke the view callback once per frame', async () => {
         const app = avalon();
 
         let n = 1;
@@ -206,13 +199,12 @@ describe('view', () => {
         app.commit('foo');
         app.commit('foo');
 
-        requestAnimationFrame(() => {
-            expect(callback.callCount).to.equal(1);
-            testDone();
-        });
+        await wait();
+
+        expect(callback.callCount).to.equal(1);
     });
 
-    it('should emit the render event when a view has been rendered', (testDone) => {
+    it('should emit the render event when a view has been rendered', async () => {
         const app = avalon({foo: 1});
         app.mutation('foo', () => ({foo: 2}));
 
@@ -226,18 +218,18 @@ describe('view', () => {
 
         app.view(root, (html) => html`<div></div>`);
 
-        requestAnimationFrame(() => {
-            expect(renderSpy.callCount).to.equal(1);
+        await wait();
 
-            app.commit('foo');
-            requestAnimationFrame(() => {
-                expect(renderSpy.callCount).to.equal(2);
-                testDone();
-            });
-        });
+        expect(renderSpy.callCount).to.equal(1);
+
+        app.commit('foo');
+
+        await wait();
+
+        expect(renderSpy.callCount).to.equal(2);
     });
 
-    it('should support multiple views', (testDone) => {
+    it('should support multiple views', async () => {
         const app = avalon();
 
         const root1 = document.createElement('div');
@@ -246,14 +238,13 @@ describe('view', () => {
         const root2 = document.createElement('div');
         app.view(root2, (html) => html`<div>bar</div>`);
 
-        requestAnimationFrame(() => {
-            expect(root1.innerHTML).to.equal('<div>foo</div>');
-            expect(root2.innerHTML).to.equal('<div>bar</div>');
-            testDone();
-        });
+        await wait();
+
+        expect(root1.innerHTML).to.equal('<div>foo</div>');
+        expect(root2.innerHTML).to.equal('<div>bar</div>');
     });
 
-    it('should emit the render event for each view', (testDone) => {
+    it('should emit the render event for each view', async () => {
         const app = avalon();
 
         const renderSpy = sinon.spy();
@@ -265,13 +256,12 @@ describe('view', () => {
         const root2 = document.createElement('div');
         app.view(root2, (html) => html`<div>bar</div>`);
 
-        requestAnimationFrame(() => {
-            expect(renderSpy.callCount).to.equal(2);
-            testDone();
-        });
+        await wait();
+
+        expect(renderSpy.callCount).to.equal(2);
     });
 
-    it('should support multiple renderings', (testDone) => {
+    it('should support multiple renderings', async () => {
         const app = avalon({count: 0});
 
         app.mutation('increment', ({count}) => ({count: count + 1}));
@@ -284,13 +274,12 @@ describe('view', () => {
         app.commit('increment');
         app.commit('increment');
 
-        requestAnimationFrame(() => {
-            expect(root.innerHTML).to.equal('<div>4</div>');
-            testDone();
-        });
+        await wait();
+
+        expect(root.innerHTML).to.equal('<div>4</div>');
     });
 
-    it('should support functional components', (testDone) => {
+    it('should support functional components', async () => {
         const app = avalon();
 
         const fooSpy = sinon.spy(() => ({}));
@@ -314,14 +303,13 @@ describe('view', () => {
         const root = document.createElement('div');
         app.view(root, (html) => html`<${Component} id="abc" cls="123">baz<//>`);
 
-        requestAnimationFrame(() => {
-            expect(root.innerHTML).to.equal('<div id="abc" class="123">baz</div>');
-            expect(Component.callCount).to.equal(1);
-            testDone();
-        });
+        await wait();
+
+        expect(root.innerHTML).to.equal('<div id="abc" class="123">baz</div>');
+        expect(Component.callCount).to.equal(1);
     });
 
-    it('should support views with multiple root elements', (testDone) => {
+    it('should support views with multiple root elements', async () => {
         const app = avalon({foo: 1, bar: 2});
 
         const renderSpy = sinon.spy();
@@ -335,23 +323,22 @@ describe('view', () => {
 
         app.mutation('foobar', () => ({foo: 10, bar: 20}));
 
-        requestAnimationFrame(() => {
-            expect(root.innerHTML).to.equal('<div>1</div><span>2</span>');
+        await wait();
 
-            const children = Array.from(root.childNodes);
+        expect(root.innerHTML).to.equal('<div>1</div><span>2</span>');
 
-            expect(renderSpy.callCount).to.equal(1);
-            expect(renderSpy.args[0][0]).to.deep.equal(children);
+        const children = Array.from(root.childNodes);
 
-            app.commit('foobar');
-            requestAnimationFrame(() => {
-                expect(root.innerHTML).to.equal('<div>10</div><span>20</span>');
+        expect(renderSpy.callCount).to.equal(1);
+        expect(renderSpy.args[0][0]).to.deep.equal(children);
 
-                expect(renderSpy.callCount).to.equal(2);
-                expect(renderSpy.args[1][0]).to.deep.equal(children);
+        app.commit('foobar');
 
-                testDone();
-            });
-        });
+        await wait();
+
+        expect(root.innerHTML).to.equal('<div>10</div><span>20</span>');
+
+        expect(renderSpy.callCount).to.equal(2);
+        expect(renderSpy.args[1][0]).to.deep.equal(children);
     });
 });
