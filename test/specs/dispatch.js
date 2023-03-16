@@ -234,6 +234,24 @@ describe('dispatch', () => {
         }
     });
 
+    it('should support async actions/routes by returning a promise', async () => {
+        const app = avalon(initialState);
+
+        app.action('foo', () => {
+            return new Promise((resolve) => {
+                setTimeout(() => resolve('foo'), 200);
+            });
+        });
+
+        const promise = app.dispatch('foo');
+        
+        expect(promise).to.be.a('promise');
+
+        const value = await promise;
+
+        expect(value).to.equal('foo');
+    });
+
     it('should provide a promise for async actions/routes', (testDone) => {
         const app = avalon();
 
