@@ -268,9 +268,6 @@ class Avalon {
     }
 
     view(parent, callback) {
-        if (typeof parent === 'string') {
-            parent = document.querySelector(parent);
-        }
         let renderPromise;
         const render = () => {
             if (renderPromise) {

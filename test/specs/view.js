@@ -16,20 +16,6 @@ describe('view', () => {
         expect(root.innerHTML).to.equal('<div>1</div>');
     });
 
-    it('should support a selector string for a parent element', async () => {
-        const app = avalon();
-
-        const root = document.createElement('div');
-        root.id = 'foo';
-        document.body.appendChild(root);
-        app.view('#foo', (html) => html`<div></div>`);
-
-        await wait();
-
-        expect(root.innerHTML).to.equal('<div></div>');
-        root.remove();
-    });
-
     it('should update a view when the state changes', async () => {
         const app = avalon({foo: 1});
 
