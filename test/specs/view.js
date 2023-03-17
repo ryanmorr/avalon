@@ -55,7 +55,7 @@ describe('view', () => {
     it('should provide the current state and dispatch function to the view callback function', async () => {
         const app = avalon();
 
-        const fooSpy = sinon.spy(() => ({}));
+        const fooSpy = sinon.spy(() => 123);
         app.action('foo', fooSpy);
 
         const callback = sinon.spy((html, state, dispatch) => {
@@ -68,7 +68,8 @@ describe('view', () => {
             };
             const foo = dispatch('foo', params);
             expect(foo).to.be.a('function');
-            foo();
+            const value = foo();
+            expect(value).to.equal(123);
             expect(fooSpy.callCount).to.equal(1);
             expect(fooSpy.args[0][0].params).to.equal(params);
 
@@ -282,7 +283,7 @@ describe('view', () => {
     it('should support functional components', async () => {
         const app = avalon();
 
-        const fooSpy = sinon.spy(() => ({}));
+        const fooSpy = sinon.spy(() => 123);
         app.action('foo', fooSpy);
 
         const Component = sinon.spy((html, {id, cls, children}, dispatch) => {
@@ -293,7 +294,8 @@ describe('view', () => {
             };
             const foo = dispatch('foo', params);
             expect(foo).to.be.a('function');
-            foo();
+            const value = foo();
+            expect(value).to.equal(123);
             expect(fooSpy.callCount).to.equal(1);
             expect(fooSpy.args[0][0].params).to.equal(params);
 
