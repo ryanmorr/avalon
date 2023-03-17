@@ -10,7 +10,10 @@
   "keywords": [
     "javascript",
     "framework",
-    "ui"
+    "ui",
+    "web app",
+    "state management",
+    "routing"
   ],
   "type": "module",
   "main": "dist/cjs/avalon.js",
