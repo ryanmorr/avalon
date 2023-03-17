@@ -1,14 +1,14 @@
 # avalon
 
 [![Version Badge][version-image]][project-url]
-[![Build Status][build-image]][build-url]
 [![License][license-image]][license-url]
+[![Build Status][build-image]][build-url]
 
 > JavaScript micro-framework for building single page web applications
 
 ## Install
 
-Download the [CJS](https://github.com/ryanmorr/avalon/raw/master/dist/avalon.cjs.js), [ESM](https://github.com/ryanmorr/avalon/raw/master/dist/avalon.esm.js), [UMD](https://github.com/ryanmorr/avalon/raw/master/dist/avalon.umd.js) versions or install via NPM:
+Download the [CJS](https://github.com/ryanmorr/avalon/raw/master/dist/cjs/avalon.js), [ESM](https://github.com/ryanmorr/avalon/raw/master/dist/esm/avalon.js), [UMD](https://github.com/ryanmorr/avalon/raw/master/dist/umd/avalon.js) versions or install via NPM:
 
 ```sh
 npm install @ryanmorr/avalon
@@ -47,7 +47,7 @@ Check out the [TodoMVC example](https://github.com/ryanmorr/avalon-todomvc).
 
 ## API
 
-### avalon(state?)
+### `avalon(state?)`
 
 Create an application instance with an initial state as a plain key/value object. The `title` property is reserved for the current document title, changing it will automatically update the document title:
 
@@ -59,7 +59,9 @@ const app = avalon({
 });
 ```
 
-### mutation(name, callback)
+------
+
+### `mutation(name, callback)`
 
 Define a mutation by providing a name and a callback function that synchronously changes state by returning a partial state object that will be merged into the application state:
 
@@ -71,7 +73,9 @@ app.mutation('foo', (state, payload) => {
 });
 ```
 
-### commit(name, payload?)
+------
+
+### `commit(name, payload?)`
 
 Call a mutation to update application state by providing its name and an optional payload, returns the partial state that resulted from the mutation:
 
@@ -81,7 +85,9 @@ app.mutation('foo', (state, n) => ({foo: n + 10}));
 app.commit('foo', 10); //=> {foo: 20}
 ```
 
-### action(name, callback)
+------
+
+### `action(name, callback)`
 
 Define an action by providing a name and a callback function that can be used to respond to DOM event listeners, perform async operations, dispatch other actions, commit mutations, etc. The action callback function is provided an object of relevant data and convenience functions as the first parameter:
 
@@ -90,7 +96,7 @@ app.action('foo', ({state, params, event, dispatch, commit, navigate, redirect, 
     /**
      * state - the current state of the app
      * params - key/value object provided to the dispatcher or null if not provided
-     * event - the event object of user triggered DOM events
+     * event - the event object of user triggered DOM events or null if not applicable
      * commit - function for calling mutations
      * dispatch - function for dispatching actions or routes
      * navigate - function for navigating to a URL path and dispatching a route
@@ -123,7 +129,9 @@ app.dispatch('load', {id: 'foo'}).then((data) => {
 });
 ```
 
-### route(path, callback)
+------
+
+### `route(path, callback)`
 
 Routes work exactly like actions, except they also respond to changes in the URL path, such as user-triggered click events and form submits, programmatic calls to the `navigate` and `redirect` methods, and moving forwards and backwards in the session history stack. A route must be defined with a leading forward slash:
 
@@ -133,7 +141,7 @@ app.route('/foo', ({state, path, params, event, dispatch, commit, navigate, redi
      * state - the current state of the app
      * path - the URL path that matched the route
      * params - key/value object extracted from a route's parameters or null if it's a static route
-     * event - the event object of user triggered DOM events
+     * event - the event object of user triggered DOM events or null if not applicable
      * commit - function for calling mutations
      * dispatch - function for dispatching actions or routes
      * navigate - function for navigating to a URL path and dispatching a route
@@ -162,7 +170,9 @@ app.route('/*', ({params: {wildcard}}) => {
 });
 ```
 
-### dispatch(name?, params?)
+------
+
+### `dispatch(name?, params?)`
 
 Dispatch an action with optional parameters or a route. If no arguments are provided the current URL path is used by default. Returns the return value of the action/route callback function or a promise if it's an async action/route.
 
@@ -179,7 +189,9 @@ app.dispatch('load').then((data) => {
 })
 ```
 
-### view(parent, callback)
+------
+
+### `view(element, callback)`
 
 Define a view to be immediately rendered and automatically updated via virtual DOM when the state changes. The view callback function is provided a virtual DOM builder via tagged templates, the current state, and a convenient dispatch function for dispatching actions and routes as the result of a DOM event listener with optional parameters as a key/value object:
 
@@ -210,7 +222,9 @@ app.view(parentElement, (html, state) => html`
 `);
 ```
 
-### navigate(path)
+------
+
+### `navigate(path)`
 
 Pushes a new entry onto the history stack with the provided URL path and dispatches the first matching route. Returns the return value of the route callback function or a promise if it's an async route:
 
@@ -226,7 +240,9 @@ app.path(); //=> "/foo"
 history.length; //=> 1
 ```
 
-### redirect(path)
+------
+
+### `redirect(path)`
 
 Replaces the current history entry with the provided URL path and dispatches the first matching route. Returns the return value of the route callback function or a promise if it's an async route:
 
@@ -242,9 +258,11 @@ app.path(); //=> "/foo"
 history.length; //=> 0
 ```
 
-### on(name, callback)
+------
 
-Subscribe to application events, returns a function to remove that specific subscriber:
+### `on(name, callback)`
+
+Subscribe to application events, returns a function to remove that specific listener:
 
 ```javascript
 // Listen for state changes
@@ -268,12 +286,17 @@ app.on('render', (parentElement) => {
 });
 
 // Define your own custom event with parameters
-app.on('foo', (a, b, c, d) => {
+const stop = app.on('foo', (a, b, c, d) => {
     // Do something
 });
+
+// Stop listening for custom event
+stop();
 ```
 
-### emit(name, ...args?)
+------
+
+### `emit(name, ...args?)`
 
 Trigger a custom event with optional arguments:
 
@@ -285,7 +308,9 @@ app.on('foo', (a, b, c, d) => {
 app.emit('foo', 1, 2, 3, 4);
 ```
 
-### state()
+------
+
+### `state()`
 
 Get the current state object:
 
@@ -299,7 +324,9 @@ const app = avalon({
 app.state(); //=> {title: "Hello World", foo: 1, bar: 2}
 ```
 
-### path()
+------
+
+### `path()`
 
 Get the current URL path:
 
@@ -309,7 +336,9 @@ app.navigate('/foo');
 app.path(); //=> "/foo"
 ```
 
-### use(callback)
+------
+
+### `use(plugin)`
 
 Add a plugin by providing a callback function that is immediately invoked with the application instance and the current state. Returns the return value of the plugin callback function:
 
@@ -332,8 +361,8 @@ const log = app.use((app, state) => {
 This project is dedicated to the public domain as described by the [Unlicense](http://unlicense.org/).
 
 [project-url]: https://github.com/ryanmorr/avalon
-[version-image]: https://badge.fury.io/gh/ryanmorr%2Favalon.svg
-[build-url]: https://travis-ci.org/ryanmorr/avalon
-[build-image]: https://travis-ci.org/ryanmorr/avalon.svg
-[license-image]: https://img.shields.io/badge/license-Unlicense-blue.svg
+[version-image]: https://img.shields.io/github/package-json/v/ryanmorr/avalon?color=blue&style=flat-square
+[build-url]: https://github.com/ryanmorr/avalon/actions
+[build-image]: https://img.shields.io/github/actions/workflow/status/ryanmorr/avalon/node.js.yml?style=flat-square
+[license-image]: https://img.shields.io/github/license/ryanmorr/avalon?color=blue&style=flat-square
 [license-url]: UNLICENSE
