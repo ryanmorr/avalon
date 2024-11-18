@@ -4,10 +4,6 @@ import scheduleRender from '@ryanmorr/schedule-render';
 
 const TRAILING_SLASH_RE = /\/$/;
 
-function isNumeric(value) {
-    return !Number.isNaN(parseFloat(value)) && isFinite(value);
-}
-
 function coerce(value) {
     if (value === 'true') {
         return true;
@@ -18,8 +14,8 @@ function coerce(value) {
     if (value === 'undefined') {
         return null;
     }
-    if (isNumeric(value)) {
-        return Number(value);
+    if (value === +value + '') {
+        return +value;
     }
     return value;
 }
