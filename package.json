@@ -57,7 +57,7 @@
     "terser": "^5.16.3"
   },
   "dependencies": {
-    "@ryanmorr/carbon": "^0.2.3",
+    "@ryanmorr/carbon": "^1.0.1",
     "@ryanmorr/schedule-render": "^3.0.2",
     "htm": "^3.1.1"
   }
