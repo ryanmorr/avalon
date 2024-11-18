@@ -155,31 +155,43 @@ function getRouteMatcher(path) {
 }
 
 class Avalon {
+    
+    #state;
+    #mutations;
+    #actions;
+    #events;
+    #dispatchers;
+    #views;
+    #html;
+    #methods;
+
     constructor(state = {}) {
         if ('title' in state) {
             document.title = state.title;
         } else {
             state.title = document.title;
         }
-        this._state = createStateObject(state);
-        this._mutations = Object.create(null);
-        this._actions = new Map();
-        this._events = new Map();
-        this._dispatchers = new Map();
-        this._views = [];
-        this._commit = this.commit.bind(this);
-        this._dispatch = this.dispatch.bind(this);
-        this._redirect = this.redirect.bind(this);
-        this._navigate = this.navigate.bind(this);
-        this._emit = this.emit.bind(this);
-        const onEvent = this._handleEvent.bind(this);
+        this.#state = createStateObject(state);
+        this.#mutations = Object.create(null);
+        this.#actions = new Map();
+        this.#events = new Map();
+        this.#dispatchers = new Map();
+        this.#views = [];
+        this.#methods = {
+            commit: this.commit.bind(this),
+            dispatch: this.dispatch.bind(this),
+            redirect: this.redirect.bind(this),
+            navigate: this.navigate.bind(this),
+            emit: this.emit.bind(this)
+        };
+        const onEvent = this.#handleEvent.bind(this);
         document.documentElement.addEventListener('click', onEvent, false);
         document.documentElement.addEventListener('submit', onEvent, false);
-        this.html = htm.bind((nodeName, attributes, ...children) => {
+        this.#html = htm.bind((nodeName, attributes, ...children) => {
             attributes = attributes || {};
             if (typeof nodeName === 'function') {
                 attributes.children = children;
-                return nodeName(this.html, attributes, this._getEventDispatcher());
+                return nodeName(this.#html, attributes, this.#getEventDispatcher());
             }
             return h(nodeName, attributes, ...children);
         });
@@ -187,7 +199,7 @@ class Avalon {
             if (nextState.title !== prevState.title) {
                 document.title = nextState.title;
             }
-            this._views.forEach((render) => render());
+            this.#views.forEach((render) => render());
         });
     }
 
@@ -196,7 +208,7 @@ class Avalon {
     }
 
     state() {
-        return this._state;
+        return this.#state;
     }
 
     path() {
@@ -204,17 +216,17 @@ class Avalon {
     }
 
     on(name, callback) {
-        let callbacks = this._events.get(name);
+        let callbacks = this.#events.get(name);
         if (callbacks === undefined) {
             callbacks = new Set();
-            this._events.set(name, callbacks);
+            this.#events.set(name, callbacks);
         }
         callbacks.add(callback);
-        return () => this._events.get(name).delete(callback);
+        return () => this.#events.get(name).delete(callback);
     }
 
     emit(name, ...args) {
-        const callbacks = this._events.get(name);
+        const callbacks = this.#events.get(name);
         if (callbacks !== undefined && callbacks.size > 0) {
             callbacks.forEach((callback) => callback(...args));
         }
@@ -222,17 +234,17 @@ class Avalon {
 
     mutation(name, callback) {
         addOneOrMany(name, callback, (key, value) => {
-            this._mutations[key] = value;
+            this.#mutations[key] = value;
         });
     }
 
     commit(name, payload = null) {
-        const callback = this._mutations[name];
+        const callback = this.#mutations[name];
         if (callback) {
             const prevState = this.state();
             const partialState = callback(prevState, payload);
-            this._state = createStateObject(prevState, partialState);
-            this.emit('mutation', name, this._state, prevState, partialState);
+            this.#state = createStateObject(prevState, partialState);
+            this.emit('mutation', name, this.#state, prevState, partialState);
             return partialState;
         }
         return null;
@@ -240,31 +252,31 @@ class Avalon {
 
     action(name, callback) {
         addOneOrMany(name, callback, (key, value) => {
-            this._actions.set(key, value);
+            this.#actions.set(key, value);
         });
     }
 
     route(path, callback) {
-        if (!this._onPopState) {
-            this._onPopState = this._handlePopState.bind(this);
-            window.addEventListener('popstate', this._onPopState, false);
+        if (!this.#methods.onPopState) {
+            this.#methods.onPopState = this.#handlePopState.bind(this);
+            window.addEventListener('popstate', this.#methods.onPopState, false);
         }
         addOneOrMany(path, callback, (key, value) => {
-            this._actions.set(getRouteMatcher(key), value);
+            this.#actions.set(getRouteMatcher(key), value);
         });
     }
 
     dispatch(key = this.path(), params = null) {
-        const dispatch = this._getDispatcher(key, params);
+        const dispatch = this.#getDispatcher(key, params);
         return dispatch ? dispatch() : null;
     }
 
     navigate(path) {
-        return this._modifyHistory(path, 'navigate');
+        return this.#modifyHistory(path, 'navigate');
     }
 
     redirect(path) {
-        return this._modifyHistory(path, 'redirect');
+        return this.#modifyHistory(path, 'redirect');
     }
 
     view(parent, callback) {
@@ -274,22 +286,22 @@ class Avalon {
                 return renderPromise;
             }
             return (renderPromise =  scheduleRender(() => {
-                const vdom = callback(this.html, this.state(), this._getEventDispatcher());
+                const vdom = callback(this.#html, this.state(), this.#getEventDispatcher());
                 const element = doRender(parent, vdom);
                 renderPromise = null;
                 this.emit('render', element);
             }));
         };
-        this._views.push(render);
+        this.#views.push(render);
         render();
     }
 
-    _modifyHistory(path, type = 'navigate') {
+    #modifyHistory(path, type = 'navigate') {
         path = normalizePath(path);
         if (path === this.path()) {
             return;
         }
-        const dispatch = this._getDispatcher(path);
+        const dispatch = this.#getDispatcher(path);
         if (dispatch) {
             history[type === 'redirect' ? 'replaceState' : 'pushState'](null, '', path);
             this.emit('pathchange', path);
@@ -298,8 +310,8 @@ class Avalon {
         return null;
     }
 
-    _getDispatcher(key, params = null, event = null) {
-        for (const [matcher, callback] of this._actions) {
+    #getDispatcher(key, params = null, event = null) {
+        for (const [matcher, callback] of this.#actions) {
             let type;
             if (isPath(key) && typeof matcher !== 'string') {
                 const path = normalizePath(key);
@@ -319,11 +331,11 @@ class Avalon {
                         params,
                         event,
                         state: this.state(),
-                        commit: this._commit,
-                        dispatch: this._dispatch,
-                        navigate: this._navigate,
-                        redirect: this._redirect,
-                        emit: this._emit
+                        commit: this.#methods.commit,
+                        dispatch: this.#methods.dispatch,
+                        navigate: this.#methods.navigate,
+                        redirect: this.#methods.redirect,
+                        emit: this.#methods.emit
                     };
                     if (type === 'route') {
                         data.path = key;
@@ -337,29 +349,29 @@ class Avalon {
         return null;
     }
 
-    _getEventDispatcher() {
+    #getEventDispatcher() {
         return (key, params = null) => {
-            for (const [dispatcherKey, callback] of this._dispatchers) {
+            for (const [dispatcherKey, callback] of this.#dispatchers) {
                 if (dispatcherKey[0] === key && isEqual(params, dispatcherKey[1])) {
                     return callback;
                 }
             }
             const callback = (e) => {
-                const dispatch = this._getDispatcher(key, params, (e instanceof Event) ? e : null);
+                const dispatch = this.#getDispatcher(key, params, (e instanceof Event) ? e : null);
                 return dispatch ? dispatch() : null;
             };
-            this._dispatchers.set([key, params], callback);
+            this.#dispatchers.set([key, params], callback);
             return callback;
         };
     }
 
-    _handlePopState() {
+    #handlePopState() {
         const path = this.path();
         this.dispatch(path);
         this.emit('pathchange', path);
     }
 
-    _handleEvent(event) {
+    #handleEvent(event) {
         if (event.defaultPrevented) {
             return;
         }
@@ -402,7 +414,7 @@ class Avalon {
         if (isRoute && key === this.path()) {
             return;
         }
-        const dispatch = this._getDispatcher(key, null, event);
+        const dispatch = this.#getDispatcher(key, null, event);
         if (!dispatch) {
             return;
         }
