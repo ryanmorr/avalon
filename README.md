@@ -136,11 +136,11 @@ app.dispatch('load', {id: 'foo'}).then((data) => {
 Routes work exactly like actions, except they also respond to changes in the URL path, such as user-triggered click events and form submits, programmatic calls to the `navigate` and `redirect` methods, and moving forwards and backwards in the session history stack. A route must be defined with a leading forward slash:
 
 ```javascript
-app.route('/foo', ({state, path, params, event, dispatch, commit, navigate, redirect, emit}) => {
+app.route('/', ({state, path, params, event, dispatch, commit, navigate, redirect, emit}) => {
     /**
      * state - the current state of the app
      * path - the URL path that matched the route
-     * params - key/value object extracted from a route's parameters or null if it's a static route
+     * params - key/value object extracted from a route's parameters or null if static path
      * event - the event object of user triggered DOM events or null if not applicable
      * commit - function for calling mutations
      * dispatch - function for dispatching actions or routes
